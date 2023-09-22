@@ -16,8 +16,16 @@ output "selfhosted_instance_public_ip" {
   description = "Public IP address of the selfhosted_instance"
   value       = oci_core_instance.selfhosted_instance.public_ip
 }
+output "selfhosted_instance_ocid" {
+  description = "Public IP address of the selfhosted_instance"
+  value       = oci_core_instance.selfhosted_instance.id
+}
 
 output "vpn_instance_public_ip" {
   description = "Public IP address of the vpn_instance"
   value       = oci_core_instance.vpn_instance.public_ip
+}
+output "vpn_instance_ocid" {
+  description = "Public IP address of the vpn_instance"
+  value       = oci_core_instance.vpn_instance.id
 }

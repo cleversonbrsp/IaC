@@ -1,8 +1,3 @@
-/* https://docs.oracle.com/en-us/iaas/developer-tutorials/tutorials/tf-compute/01-summary.htm
-   https://docs.oracle.com/pt-br/iaas/Content/Compute/References/computeshapes.htm#flexible
-   https://docs.oracle.com/en-us/iaas/images/image/9bff226a-3923-48d7-9931-c9869b36fbf1/
-*/
-
 ################## selfhosted_instance ##################
 resource "oci_core_instance" "selfhosted_instance" {
   # Required
@@ -48,7 +43,7 @@ resource "oci_core_instance" "vpn_instance" {
   }
 
   # Optional
-  display_name = "selfhosted_instance"
+  display_name = "vpn_instance"
   create_vnic_details {
     assign_public_ip = true
     subnet_id        = oci_core_subnet.node_subnet.id
@@ -58,3 +53,9 @@ resource "oci_core_instance" "vpn_instance" {
   }
   preserve_boot_volume = false
 }
+
+############# DOCS #############
+/* https://docs.oracle.com/en-us/iaas/developer-tutorials/tutorials/tf-compute/01-summary.htm
+   https://docs.oracle.com/pt-br/iaas/Content/Compute/References/computeshapes.htm#flexible
+   https://docs.oracle.com/en-us/iaas/images/image/9bff226a-3923-48d7-9931-c9869b36fbf1/
+*/
