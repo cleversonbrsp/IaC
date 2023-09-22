@@ -1,0 +1,1 @@
+oci ce cluster create-kubeconfig --cluster-id [ ] --file $HOME/.kube/config --region sa-saopaulo-1 --token-version 2.0.0  --kube-endpoint PUBLIC_ENDPOINT
