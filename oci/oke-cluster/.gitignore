@@ -1,9 +1,0 @@
-/keys
-/.terraform
-/dynamic_group.tff
-/policy.tffff
-/.terraform.lock.hcl
-/terraform.tfvars
-/terraform.tfstate.backup
-/terraform.tfstate
-/hashicorp.gpg
