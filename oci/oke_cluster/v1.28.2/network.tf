@@ -9,7 +9,7 @@ resource "oci_core_internet_gateway" "generated_oci_core_internet_gateway" {
 	compartment_id = oci_identity_compartment.oke_comp.id
 	display_name = "oke-igw"
 	enabled = "true"
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_subnet" "service_lb_subnet" {
@@ -18,9 +18,9 @@ resource "oci_core_subnet" "service_lb_subnet" {
 	display_name = "svclbsubnet_oke_cluster01_regional"
 	dns_label = "svclbsubnetokec"
 	prohibit_public_ip_on_vnic = "false"
-	route_table_id = "${oci_core_default_route_table.generated_oci_core_default_route_table.id}"
-	security_list_ids = ["${oci_core_vcn.generated_oci_core_vcn.default_security_list_id}"]
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	route_table_id = oci_core_default_route_table.generated_oci_core_default_route_table.id
+	security_list_ids = [oci_core_vcn.generated_oci_core_vcn.default_security_list_id]
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_subnet" "node_subnet" {
@@ -29,9 +29,9 @@ resource "oci_core_subnet" "node_subnet" {
 	display_name = "oke-nodesubnet"
 	dns_label = "subnodeokeclust"
 	prohibit_public_ip_on_vnic = "false"
-	route_table_id = "${oci_core_default_route_table.generated_oci_core_default_route_table.id}"
-	security_list_ids = ["${oci_core_security_list.node_sec_list.id}"]
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	route_table_id = oci_core_default_route_table.generated_oci_core_default_route_table.id
+	security_list_ids = [oci_core_security_list.node_sec_list.id]
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_subnet" "kubernetes_api_endpoint_subnet" {
@@ -40,9 +40,9 @@ resource "oci_core_subnet" "kubernetes_api_endpoint_subnet" {
 	display_name = "oke-k8sApiEndpoint-subnet"
 	dns_label = "subapiokecluste"
 	prohibit_public_ip_on_vnic = "false"
-	route_table_id = "${oci_core_default_route_table.generated_oci_core_default_route_table.id}"
-	security_list_ids = ["${oci_core_security_list.kubernetes_api_endpoint_sec_list.id}"]
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	route_table_id = oci_core_default_route_table.generated_oci_core_default_route_table.id
+	security_list_ids = [oci_core_security_list.kubernetes_api_endpoint_sec_list.id]
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_default_route_table" "generated_oci_core_default_route_table" {
@@ -51,15 +51,15 @@ resource "oci_core_default_route_table" "generated_oci_core_default_route_table"
 		description = "traffic to/from internet"
 		destination = "0.0.0.0/0"
 		destination_type = "CIDR_BLOCK"
-		network_entity_id = "${oci_core_internet_gateway.generated_oci_core_internet_gateway.id}"
+		network_entity_id = oci_core_internet_gateway.generated_oci_core_internet_gateway.id
 	}
-	manage_default_resource_id = "${oci_core_vcn.generated_oci_core_vcn.default_route_table_id}"
+	manage_default_resource_id = oci_core_vcn.generated_oci_core_vcn.default_route_table_id
 }
 
 resource "oci_core_security_list" "service_lb_sec_list" {
 	compartment_id = oci_identity_compartment.oke_comp.id
 	display_name = "oke-svclbseclist"
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_security_list" "node_sec_list" {
@@ -150,7 +150,7 @@ resource "oci_core_security_list" "node_sec_list" {
 		source = "0.0.0.0/0"
 		stateless = "false"
 	}
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
 
 resource "oci_core_security_list" "kubernetes_api_endpoint_sec_list" {
@@ -209,5 +209,5 @@ resource "oci_core_security_list" "kubernetes_api_endpoint_sec_list" {
 		source = "10.0.10.0/24"
 		stateless = "false"
 	}
-	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
+	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
