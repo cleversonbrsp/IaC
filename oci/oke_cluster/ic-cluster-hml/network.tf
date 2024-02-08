@@ -1,4 +1,3 @@
-<<<<<<< HEAD:oci/oke_cluster/ic-cluster-hml/network.tf
 resource "oci_core_vcn" "generated_oci_core_vcn" {
 	cidr_block = "10.0.0.0/16"
 	compartment_id = var.oci_root_compartment
