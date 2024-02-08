@@ -211,7 +211,7 @@ resource "oci_core_security_list" "kubernetes_api_endpoint_sec_list" {
 	}
 	vcn_id = "${oci_core_vcn.generated_oci_core_vcn.id}"
 }
-=======
+
 resource "oci_core_vcn" "generated_oci_core_vcn" {
 	cidr_block = "10.0.0.0/16"
 	compartment_id = oci_identity_compartment.oke_comp.id
@@ -425,4 +425,3 @@ resource "oci_core_security_list" "kubernetes_api_endpoint_sec_list" {
 	}
 	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
->>>>>>> c5b2868d027c67ba3a1a48149d1aea6e7356f15f:oci/oke_cluster/v1.28.2/network.tf
