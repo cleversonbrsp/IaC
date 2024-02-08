@@ -40,3 +40,8 @@ variable "dynamic_group_matching_rule" {
   type    = string
   default = ""
 }
+
+variable "node_img" {
+  type    = string
+  default = ""
+}

@@ -2,13 +2,13 @@ resource "oci_containerengine_cluster" "generated_oci_containerengine_cluster" {
 	cluster_pod_network_options {
 		cni_type = "FLANNEL_OVERLAY"
 	}
-	compartment_id = oci_identity_compartment.oke_comp.id
+	compartment_id = var.oci_root_compartment
 	endpoint_config {
 		is_public_ip_enabled = "true"
 		subnet_id = oci_core_subnet.kubernetes_api_endpoint_subnet.id
 	}
 	kubernetes_version = "v1.28.2"
-	name = "oke-cluster"
+	name = "ic-cluster-prd"
 	options {
 		kubernetes_network_config {
 			pods_cidr = "10.244.0.0/16"
@@ -23,16 +23,15 @@ resource "oci_containerengine_cluster" "generated_oci_containerengine_cluster" {
 	type = "ENHANCED_CLUSTER"
 	vcn_id = oci_core_vcn.generated_oci_core_vcn.id
 }
-
 resource "oci_containerengine_node_pool" "create_node_pool_details0" {
 	cluster_id = "${oci_containerengine_cluster.generated_oci_containerengine_cluster.id}"
-	compartment_id = oci_identity_compartment.oke_comp.id
+	compartment_id = var.oci_root_compartment
 	initial_node_labels {
 		key = "name"
-		value = "oke-pool"
+		value = "pool1"
 	}
 	kubernetes_version = "v1.28.2"
-	name = "oke-pool"
+	name = "pool1"
 	node_config_details {
 		node_pool_pod_network_option_details {
 			cni_type = "FLANNEL_OVERLAY"
@@ -43,7 +42,7 @@ resource "oci_containerengine_node_pool" "create_node_pool_details0" {
 			fault_domains = ["FAULT-DOMAIN-2"]
 			subnet_id = oci_core_subnet.node_subnet.id
 		}
-		size = "1"
+		size = "3"
 	}
 	node_eviction_node_pool_settings {
 		eviction_grace_duration = "PT60M"
@@ -51,7 +50,7 @@ resource "oci_containerengine_node_pool" "create_node_pool_details0" {
 	}
 	node_shape = "VM.Standard.E3.Flex"
 	node_shape_config {
-		memory_in_gbs = "16"
+		memory_in_gbs = "8"
 		ocpus = "1"
 	}
 	node_source_details {
@@ -59,3 +58,38 @@ resource "oci_containerengine_node_pool" "create_node_pool_details0" {
 		source_type = "IMAGE"
 	}
 }
+# resource "oci_containerengine_node_pool" "create_node_pool_details1" {
+# 	cluster_id = "${oci_containerengine_cluster.generated_oci_containerengine_cluster.id}"
+# 	compartment_id = var.oci_root_compartment
+# 	initial_node_labels {
+# 		key = "name"
+# 		value = "oke-pool1"
+# 	}
+# 	kubernetes_version = "v1.28.2"
+# 	name = "oke-pool1"
+# 	node_config_details {
+# 		node_pool_pod_network_option_details {
+# 			cni_type = "FLANNEL_OVERLAY"
+# 			max_pods_per_node = "31"
+# 		}
+# 		placement_configs {
+# 			availability_domain = var.oci_ad
+# 			fault_domains = ["FAULT-DOMAIN-2"]
+# 			subnet_id = oci_core_subnet.node_subnet.id
+# 		}
+# 		size = "2"
+# 	}
+# 	node_eviction_node_pool_settings {
+# 		eviction_grace_duration = "PT60M"
+# 		is_force_delete_after_grace_duration = "false"
+# 	}
+# 	node_shape = "VM.Standard.E3.Flex"
+# 	node_shape_config {
+# 		memory_in_gbs = "8"
+# 		ocpus = "1"
+# 	}
+# 	node_source_details {
+# 		image_id = var.node_img
+# 		source_type = "IMAGE"
+# 	}
+# }
