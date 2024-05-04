@@ -1,0 +1,9 @@
+ic_automation_account
+keys
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+note
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
