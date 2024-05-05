@@ -5,4 +5,3 @@
 terraform.tfstate
 terraform.tfstate.backup
 tls.tf.bkp
-variables.tf

@@ -2,15 +2,15 @@ terraform {
   required_providers {
     oci = {
       source = "oracle/oci"
-      version = "~>4.103.0"
+      version = "~>5.40.0"
     }
   }
 }
 
 provider "oci" {
-    tenancy_ocid = var.novamerica_tenancy
-    user_ocid = var.rackware_user
-    private_key_path = var.rackware_api_privatekey
-    fingerprint = var.rackware_api_fingerprint
-    region = var.sp_region
+    tenancy_ocid = var.root_tenancy
+    user_ocid = var.oci_user
+    private_key_path = var.api_private_key
+    fingerprint = var.api_fingerprint
+    region = var.oci_main_region
 }
