@@ -12,4 +12,3 @@ oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.sa-saopaulo-1.xy
 ### To set your KUBECONFIG environment variable to the file for this cluster, use:
 export KUBECONFIG=$HOME/.kube/config
 
-![nice](./imgs/img1.jpg)
