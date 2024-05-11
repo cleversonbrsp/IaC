@@ -1,6 +1,3 @@
-*node image*
-https://docs.oracle.com/en-us/iaas/images/image/9e988ba5-267c-44fc-bbe7-68936d6b344c/
-
 ### Local Acces
 You must have downloaded and installed OCI CLI version 2.24.0 (or later) and configured it for use. If your version of the OCI CLI is earlier than version 2.24.0, download and install a newer version from here. If you are not sure of the version of the OCI CLI you currently have installed, check with this command:
 
