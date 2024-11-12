@@ -45,16 +45,16 @@ resource "oci_containerengine_node_pool" "node_pool01" {
       #fault_domains       = ["FAULT-DOMAIN-2"]
       subnet_id           = oci_core_subnet.node_subnet.id
 
-      preemptible_node_config {
-        #Required
-        preemption_action {
-          #Required
-          type = "TERMINATE"
+      # preemptible_node_config {
+      #   #Required
+      #   preemption_action {
+      #     #Required
+      #     type = "TERMINATE"
 
-          #Optional
-          is_preserve_boot_volume = false
-        }
-      }
+      #     #Optional
+      #     is_preserve_boot_volume = false
+      #   }
+      # }
     }
     size = "2"
   }
