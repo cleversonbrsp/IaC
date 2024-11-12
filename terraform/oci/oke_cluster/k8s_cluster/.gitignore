@@ -5,3 +5,4 @@ keys
 terraform.tfstate
 terraform.tfstate.backup
 terraform.tfvars
+*.tf.bkp

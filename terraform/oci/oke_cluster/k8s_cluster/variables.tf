@@ -71,15 +71,15 @@ variable "node_img" {
   default = ""
 }
 
-variable "kubernetes_host" {
-  type = string
-}
+# variable "kubernetes_host" {
+#   type = string
+# }
 
-variable "kubernetes_token" {
-  type      = string
-  sensitive = true
-}
+# variable "kubernetes_token" {
+#   type      = string
+#   sensitive = true
+# }
 
-variable "kubernetes_ca_certificate" {
-  type = string
-}
+# variable "kubernetes_ca_certificate" {
+#   type = string
+# }
