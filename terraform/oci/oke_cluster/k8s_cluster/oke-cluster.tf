@@ -7,7 +7,7 @@ resource "oci_containerengine_cluster" "generated_oci_containerengine_cluster" {
     is_public_ip_enabled = "true"
     subnet_id            = oci_core_subnet.kubernetes_api_endpoint_subnet.id
   }
-  kubernetes_version = "v1.29.1"
+  kubernetes_version = "v1.30.1"
   name               = "crs-cluster-hml"
   options {
     kubernetes_network_config {
@@ -29,10 +29,10 @@ resource "oci_containerengine_node_pool" "node_pool01" {
   node_shape     = "VM.Standard.E3.Flex"
   name           = "pool01"
 
-  kubernetes_version = "v1.29.1"
+  kubernetes_version = "v1.30.1"
    initial_node_labels {
    	key = "CreatedBy"
-   	value = "Cleverson Rodrigues"
+   	value = "cleverson"
    }
 
   node_config_details {
