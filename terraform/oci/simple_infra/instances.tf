@@ -55,7 +55,7 @@ resource "oci_core_instance" "oci_instance" {
     ocpus         = "1"
   }
   source_details {
-    source_id   = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaav6reodg4yefnachhxoy33tnn3w55mxcj7y2dxq37bk5b7qjab37a"
+    source_id   = var.ubuntu_img
     source_type = "image"
   }
 }

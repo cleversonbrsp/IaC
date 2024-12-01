@@ -18,12 +18,24 @@ variable "oci_root_tenancy" {
   default = ""
 }
 
-variable "oci_root_compartment" {
+variable "oci_ad_agak" {
+  default = ""
+}
+
+variable "node_img" {
   type    = string
   default = ""
 }
 
 variable "ssh_instances_key" {
+  default = ""
+}
+
+variable "oci_region_us" {
+  default = ""
+}
+
+variable "ubuntu_img" {
   default = ""
 }
 
