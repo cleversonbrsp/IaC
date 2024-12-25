@@ -1,5 +1,5 @@
 resource "oci_core_vcn" "lab_vcn" {
-  compartment_id = oci_identity_compartment.simple_infra.id
+  compartment_id = oci_identity_compartment.simpleinfra.id
   cidr_block     = "192.168.0.0/16"
   display_name   = "vcn-lab01"
 }
@@ -7,12 +7,12 @@ resource "oci_core_vcn" "lab_vcn" {
 resource "oci_core_subnet" "pub_subnet" {
   cidr_block     = "192.168.0.0/16"
   display_name   = "pub_subnet"
-  compartment_id = oci_identity_compartment.simple_infra.id
+  compartment_id = oci_identity_compartment.simpleinfra.id
   vcn_id         = oci_core_vcn.lab_vcn.id
 }
 
 resource "oci_core_internet_gateway" "generated_oci_core_internet_gateway" {
-  compartment_id = oci_identity_compartment.simple_infra.id
+  compartment_id = oci_identity_compartment.simpleinfra.id
   display_name   = "igw"
   enabled        = "true"
   vcn_id         = oci_core_vcn.lab_vcn.id
@@ -30,7 +30,7 @@ resource "oci_core_default_route_table" "generated_oci_core_default_route_table"
 }
 
 resource "oci_core_security_list" "sec_list" {
-  compartment_id = oci_identity_compartment.simple_infra.id
+  compartment_id = oci_identity_compartment.simpleinfra.id
   display_name   = "sec_list"
   ingress_security_rules {
     description = "Allow all communicate"

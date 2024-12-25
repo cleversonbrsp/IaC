@@ -1,6 +1,6 @@
-resource "oci_identity_compartment" "simple_infra" {
+resource "oci_identity_compartment" "simpleinfra" {
   compartment_id = var.oci_root_tenancy
   description    = "simple infra whit a network and instances"
-  name           = "simple infra"
+  name           = "lab-simpleinfra-01"
   enable_delete  = true
 }

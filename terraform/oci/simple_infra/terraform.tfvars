@@ -8,4 +8,4 @@ ssh_instances_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8YULDllr+Vo3REn18Oo5
 oci_ad_agak = "agak:SA-SAOPAULO-1-AD-1"
 node_img = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaao4nqm23qjhqswhejf3sylvto65vcskwn4dewvr7fap6ctthjotsa"
 ubuntu_img = "ocid1.image.oc1.iad.aaaaaaaa5rxxb24tifnuklbdr3uqe3jnoeojal5evtkwysu37m6sxnod2rqa"
-oci_ad = "agak:US-ASHBURN-AD-1"
+oci_ad = "agak:SA-SAOPAULO-1-AD-1"
