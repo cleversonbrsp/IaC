@@ -1,0 +1,73 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+# VPC
+resource "aws_vpc" "example_vpc" {
+  cidr_block = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Name = "example_vpc"
+  }
+}
+
+# Gateway Virtual Privado
+resource "aws_vpn_gateway" "example_vpn_gateway" {
+  vpc_id = aws_vpc.example_vpc.id
+
+  tags = {
+    Name = "example_vpn_gateway"
+  }
+
+  depends_on = [aws_vpc.example_vpc] # Garantir que a VPC seja criada primeiro
+}
+
+# Gateway Client Temporário
+resource "aws_customer_gateway" "temp_gateway" {
+  bgp_asn    = 65000
+  ip_address = "203.0.113.1" # IP público temporário
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "TemporaryGateway"
+  }
+}
+
+# Conexão VPN com o Gateway Temporário
+resource "aws_vpn_connection" "temp_vpn_connection" {
+  vpn_gateway_id      = aws_vpn_gateway.example_vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.temp_gateway.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  depends_on = [
+    aws_vpn_gateway.example_vpn_gateway, 
+    aws_customer_gateway.temp_gateway
+  ] # Garantir que o gateway e o cliente estejam criados
+}
+
+# Gateway Client Final
+resource "aws_customer_gateway" "final_gateway" {
+  bgp_asn    = 65001
+  ip_address = "198.51.100.1" # IP público real do ponto final da VPN do OCI
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "FinalGateway"
+  }
+}
+
+# Conexão VPN com o Gateway final (opcional)
+resource "aws_vpn_connection" "final_vpn_connection" {
+  vpn_gateway_id      = aws_vpn_gateway.example_vpn_gateway.id
+  customer_gateway_id = aws_customer_gateway.final_gateway.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  depends_on = [
+    aws_customer_gateway.final_gateway, 
+    aws_vpn_gateway.example_vpn_gateway
+  ] # Garantir que os gateways estejam criados
+}
