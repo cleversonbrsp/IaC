@@ -61,14 +61,14 @@ resource "oci_core_drg_attachment" "drg_attachment" {
   vcn_id         = oci_core_vcn.vcn_aws_oci.id
 }
 
-# resource "oci_core_route_table" "aws_oci_rt" {
-#   compartment_id = oci_identity_compartment.vpn_aws_oci.id
-#   vcn_id         = oci_core_vcn.vcn_aws_oci.id
-#   display_name   = "AWS OCI Route Table"
+resource "oci_core_route_table" "aws_oci_rt" {
+  compartment_id = oci_identity_compartment.vpn_aws_oci.id
+  vcn_id         = oci_core_vcn.vcn_aws_oci.id
+  display_name   = "AWS OCI Route Table"
 
-#   route_rules {
-#     destination       = "10.0.0.0/16" # Sub-rede da AWS
-#     destination_type  = "CIDR_BLOCK"
-#     network_entity_id = oci_core_drg.drg.id
-#   }
-# }
+  route_rules {
+    destination       = "10.0.0.0/16" # Sub-rede da AWS
+    destination_type  = "CIDR_BLOCK"
+    network_entity_id = oci_core_drg.drg.id
+  }
+}
