@@ -1,11 +1,11 @@
 resource "oci_core_instance" "instance" {
   availability_domain = var.oci_ad
   compartment_id      = oci_identity_compartment.simpleinfra.id
-  display_name        = "instance-lab-01"
-  shape               = "VM.Standard.E4.Flex"
+  display_name        = "prod-clientA-webserver-001"
+  shape               = "VM.Standard.A1.Flex" # "VM.Standard.E4.Flex"
 
   shape_config {
-    memory_in_gbs = 8
+    memory_in_gbs = 6
     ocpus         = 1
   }
 
@@ -20,7 +20,7 @@ resource "oci_core_instance" "instance" {
   }
 
   source_details {
-    source_id   = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaauj2c6kz7bo2hqopgse6kseyhqmvvvnvnzmgqw7zcefqtbfwjr3wa"
+    source_id   = "ocid1.image.oc1.sa-saopaulo-1.aaaaaaaada3igrdlrj7u5symehegwugcwzou5tnsmslfnddxp6qhmc6k62pa"
     source_type = "image"
   }
 }

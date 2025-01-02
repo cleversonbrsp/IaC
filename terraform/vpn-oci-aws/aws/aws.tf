@@ -2,26 +2,26 @@ provider "aws" {
   region = "us-east-1"
 }
 
-# VPC
-resource "aws_vpc" "example_vpc" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_support = true
-  enable_dns_hostnames = true
+# # VPC
+# resource "aws_vpc" "example_vpc" {
+#   cidr_block = "10.0.0.0/16"
+#   enable_dns_support = true
+#   enable_dns_hostnames = true
 
-  tags = {
-    Name = "example_vpc"
-  }
-}
+#   tags = {
+#     Name = "example_vpc"
+#   }
+# }
 
 # Gateway Virtual Privado
 resource "aws_vpn_gateway" "example_vpn_gateway" {
-  vpc_id = aws_vpc.example_vpc.id
+  vpc_id = "vpc-0c003607e3fe9a2b0"
 
   tags = {
-    Name = "example_vpn_gateway"
+    Name = "gtw-itau-isolado"
   }
 
-  depends_on = [aws_vpc.example_vpc] # Garantir que a VPC seja criada primeiro
+#  depends_on = [aws_vpc.example_vpc] # Garantir que a VPC seja criada primeiro
 }
 
 # Gateway Client Temporário
@@ -31,7 +31,7 @@ resource "aws_customer_gateway" "temp_gateway" {
   type       = "ipsec.1"
 
   tags = {
-    Name = "TemporaryGateway"
+    Name = "gtw-temp-itau-isolado"
   }
 }
 
@@ -55,7 +55,7 @@ resource "aws_customer_gateway" "final_gateway" {
   type       = "ipsec.1"
 
   tags = {
-    Name = "FinalGateway"
+    Name = "final-gtw-itau-isolado"
   }
 }
 

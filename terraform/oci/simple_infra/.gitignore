@@ -1,0 +1,16 @@
+# Ignorar diretórios .terraform em qualquer nível
+**/.terraform/
+
+# Ignorar arquivos de estado do Terraform
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/.terraform.lock.hcl
+
+# Ignorar arquivos de variáveis sensíveis (opcional)
+**/terraform.tfvars
+
+# Ignorar arquivos de backup de output
+**/*.bkp
+
+# Ignorar outros arquivos desnecessários
+.DS_Store

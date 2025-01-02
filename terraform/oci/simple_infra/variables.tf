@@ -42,3 +42,19 @@ variable "ubuntu_img" {
 variable "oci_ad" {
   default = ""
 }
+
+variable "ad_ashburn" {
+  default = ""
+}
+
+variable "source_id_sp" {
+  default = ""
+}
+
+variable "source_id_ashburn" {
+  default = ""
+}
+
+variable "comp_id" {
+  default = ""
+}
