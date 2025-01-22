@@ -3,11 +3,6 @@ variable "oci_user" {
   type        = string
 }
 
-variable "oci_fingerprint" {
-  description = "Fingerprint da chave API OCI"
-  type        = string
-}
-
 variable "oci_region" {
   description = "Região OCI principal"
   type        = string
