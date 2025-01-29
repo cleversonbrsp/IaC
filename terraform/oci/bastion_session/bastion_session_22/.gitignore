@@ -1,7 +1,5 @@
-/.terraform
-/apikey
-/session_key
+.terraform
 .terraform.lock.hcl
 terraform.tfstate
 terraform.tfstate.backup
-tls.tf.bkp
+terraform.tfvars
