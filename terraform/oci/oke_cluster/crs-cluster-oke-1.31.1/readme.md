@@ -1,7 +1,3 @@
-Aqui está o texto revisado com ajustes para melhor fluidez e clareza:  
-
----
-
 Você deve ter baixado e instalado a OCI CLI versão 2.24.0 (ou superior) e configurado corretamente. Se a sua versão da OCI CLI for anterior à 2.24.0, faça o download e instale uma versão mais recente [aqui](#). Caso não tenha certeza da versão instalada, verifique com o seguinte comando:  
 
 ```sh
@@ -48,8 +44,4 @@ export KUBECONFIG=$HOME/.kube/config
 
 Caso queira salvar o kubeconfig em um local diferente, modifique o argumento `--file` no comando da CLI acima. Se necessário, atualize o seu script de inicialização do shell para persistir a variável `KUBECONFIG`.  
 
-Para mais informações sobre o gerenciamento de arquivos kubeconfig, consulte a [documentação oficial do Kubernetes](#). Além disso, você pode encontrar mais detalhes sobre os comandos disponíveis na CLI do Container Engine for Kubernetes da OCI [aqui](#).  
-
----
-
-Fiz ajustes para deixar o texto mais objetivo, removi repetições e padronizei os comandos. Me avise se precisar de mais alguma modificação! 🚀
+Para mais informações sobre o gerenciamento de arquivos kubeconfig, consulte a [documentação oficial do Kubernetes](#). Além disso, você pode encontrar mais detalhes sobre os comandos disponíveis na CLI do Container Engine for Kubernetes da OCI [aqui](#).
