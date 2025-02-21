@@ -35,7 +35,7 @@ resource "oci_containerengine_node_pool" "create_node_pool_details0" {
   node_config_details {
     node_pool_pod_network_option_details {
       cni_type          = "FLANNEL_OVERLAY"
-      max_pods_per_node = "31"
+      # max_pods_per_node = "31"
     }
     placement_configs {
       availability_domain = var.oci_ad
@@ -45,7 +45,7 @@ resource "oci_containerengine_node_pool" "create_node_pool_details0" {
     size = "1"
   }
   node_eviction_node_pool_settings {
-    eviction_grace_duration              = "PT60M"
+    eviction_grace_duration              = "PT1H"
     is_force_delete_after_grace_duration = "false"
   }
   node_shape = "VM.Standard.E3.Flex"
