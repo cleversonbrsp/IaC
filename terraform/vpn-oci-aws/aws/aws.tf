@@ -4,8 +4,8 @@ provider "aws" {
 
 # VPC
 resource "aws_vpc" "vpc_crs" {
-  cidr_block = "10.0.0.0/16"
-  enable_dns_support = true
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
@@ -26,7 +26,7 @@ resource "aws_customer_gateway" "temp_gateway" {
 
 # Virtual Private Gateway (VPG)
 resource "aws_vpn_gateway" "vpg" {
-  amazon_side_asn = "64512"  # Default Amazon ASN
+  amazon_side_asn = "64512" # Default Amazon ASN
 
   tags = {
     Name = "crs-vpg"
@@ -35,18 +35,18 @@ resource "aws_vpn_gateway" "vpg" {
 
 # Attach Virtual Private Gateway to VPC
 resource "aws_vpn_gateway_attachment" "vpg_attachment" {
-  vpc_id          = aws_vpc.vpc_crs.id
-  vpn_gateway_id  = aws_vpn_gateway.vpg.id
+  vpc_id         = aws_vpc.vpc_crs.id
+  vpn_gateway_id = aws_vpn_gateway.vpg.id
 
   depends_on = [aws_vpn_gateway.vpg]
 }
 
 # VPN Connection
 resource "aws_vpn_connection" "vpn_connection" {
-  vpn_gateway_id      = aws_vpn_gateway.vpg.id
-  customer_gateway_id = aws_customer_gateway.temp_gateway.id
-  type                = "ipsec.1"
-  tunnel1_inside_cidr = "169.254.20.0/30"  # Ensure this CIDR is allowed by OCI
+  vpn_gateway_id        = aws_vpn_gateway.vpg.id
+  customer_gateway_id   = aws_customer_gateway.temp_gateway.id
+  type                  = "ipsec.1"
+  tunnel1_inside_cidr   = "169.254.20.0/30" # Ensure this CIDR is allowed by OCI
   tunnel1_preshared_key = "Xy7pLm9Qz42sD"
 
   tags = {
