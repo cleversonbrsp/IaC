@@ -6,13 +6,13 @@ variable "shared_secret" {
 variable "oc_bgp_asn" {
   description = "ASN do BGP para a Oracle Cloud"
   type        = number
-  default     = 31898  # Ajuste conforme necessário
+  default     = 31898 # Ajuste conforme necessário
 }
 
 variable "aws_bgp_asn" {
   description = "ASN do BGP para a AWS"
   type        = number
-  default     = 64512  # Ajuste conforme necessário
+  default     = 64512 # Ajuste conforme necessário
 }
 
 variable "comp_crs" {
