@@ -1,6 +1,6 @@
-resource "oci_core_instance" "dayz- server-instance" {
+resource "oci_core_instance" "dayz-server-instance" {
   availability_domain = var.oci_ad
-  compartment_id      = oci_identity_compartment.simpleinfra.id
+  compartment_id      = oci_identity_compartment.dayz_compartment.id
   display_name        = "dayz-server-instance"
   shape               = "VM.Standard.A1.Flex" # "VM.Standard.E4.Flex"
 
@@ -17,6 +17,7 @@ resource "oci_core_instance" "dayz- server-instance" {
 
   metadata = {
     "ssh_authorized_keys" = var.ssh_instances_key
+    "user_data"           = base64encode(file("user-data.sh"))
   }
 
   source_details {
