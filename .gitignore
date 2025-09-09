@@ -1,0 +1,132 @@
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfstate.backup.*
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfplan.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform variables (sensitive data)
+*.tfvars
+*.tfvars.json
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Backup files
+*.bkp
+*.backup
+*.bak
+
+# Ansible
+*.retry
+.ansible/
+ansible.cfg
+hosts
+inventory/
+group_vars/all/vault.yml
+group_vars/*/vault.yml
+host_vars/*/vault.yml
+vault_pass.txt
+.vault_pass
+
+# Crossplane
+*.yaml.bak
+*.yml.bak
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# Cloud provider credentials
+.aws/
+.azure/
+.gcp/
+.oci/
+
+# Kubernetes
+kubeconfig*
+*.kubeconfig
+
+# Helm
+charts/*/charts/
+charts/*/requirements.lock
+
+# Docker
+.dockerignore
+Dockerfile.local
+
+# Python (for Ansible)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node.js (if using any JS tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Specific to this repository
+# Ignore specific terraform.tfvars files that contain sensitive data
+terraform/oci/simple_infra/terraform.tfvars
+terraform/oci/simple_infra_2/terraform.tfvars
+terraform/oci/dayz-server/terraform.tfvars
+terraform/digital-ocean/k8s/terraform.tfvars
+terraform/oci/oke_cluster/crs-cluster-oke-1.31.1/terraform.tfvars
