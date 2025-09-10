@@ -1,60 +1,53 @@
-variable "oci_user" {
-  default = ""
-}
-
-variable "oci_fringerprint" {
-  default = ""
-}
-
 variable "oci_region" {
-  default = ""
-}
-
-variable "oci_apikey" {
-  default = ""
-}
-
-variable "oci_root_tenancy" {
-  default = ""
-}
-
-variable "oci_ad_agak" {
-  default = ""
-}
-
-variable "node_img" {
-  type    = string
-  default = ""
-}
-
-variable "ssh_instances_key" {
-  default = ""
-}
-
-variable "oci_region_us" {
-  default = ""
-}
-
-variable "ubuntu_img" {
-  default = ""
+  description = "OCI region"
+  type        = string
+  default     = "sa-saopaulo-1"
 }
 
 variable "oci_ad" {
-  default = ""
+  description = "OCI Availability Domain"
+  type        = string
+  default     = "agak:SA-SAOPAULO-1-AD-1"
 }
 
-variable "ad_ashburn" {
-  default = ""
-}
-
-variable "source_id_sp" {
-  default = ""
-}
-
-variable "source_id_ashburn" {
-  default = ""
+variable "ssh_instances_key" {
+  description = "SSH public key for instances"
+  type        = string
+  default     = ""
 }
 
 variable "comp_id" {
-  default = ""
+  description = "Compartment OCID"
+  type        = string
+  default     = ""
+}
+
+variable "instance_shape" {
+  description = "Instance shape"
+  type        = string
+  default     = "VM.Standard.A1.Flex"
+}
+
+variable "instance_memory_gb" {
+  description = "Instance memory in GB"
+  type        = number
+  default     = 6
+}
+
+variable "instance_ocpus" {
+  description = "Instance OCPUs"
+  type        = number
+  default     = 1
+}
+
+variable "vcn_cidr" {
+  description = "VCN CIDR block"
+  type        = string
+  default     = "192.168.0.0/16"
+}
+
+variable "subnet_cidr" {
+  description = "Subnet CIDR block"
+  type        = string
+  default     = "192.168.0.0/16"
 }

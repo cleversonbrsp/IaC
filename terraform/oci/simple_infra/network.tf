@@ -1,11 +1,11 @@
 resource "oci_core_vcn" "lab_vcn" {
   compartment_id = oci_identity_compartment.simpleinfra.id
-  cidr_block     = "192.168.0.0/16"
+  cidr_block     = var.vcn_cidr
   display_name   = "vcn-lab01"
 }
 
 resource "oci_core_subnet" "pub_subnet" {
-  cidr_block     = "192.168.0.0/16"
+  cidr_block     = var.subnet_cidr
   display_name   = "pub_subnet"
   compartment_id = oci_identity_compartment.simpleinfra.id
   vcn_id         = oci_core_vcn.lab_vcn.id
