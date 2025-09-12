@@ -51,3 +51,11 @@ variable "subnet_cidr" {
   type        = string
   default     = "192.168.0.0/16"
 }
+
+variable "fedora-img" {
+  default = "https://fedoraproject.org/cloud/download"
+}
+
+variable "ubuntu-img" {
+  default = "https://cloud-images.ubuntu.com/jammy/current/"
+}

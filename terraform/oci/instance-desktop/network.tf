@@ -1,18 +1,18 @@
 resource "oci_core_vcn" "lab_vcn" {
-  compartment_id = oci_identity_compartment.simpleinfra.id
+  compartment_id = oci_identity_compartment.crodrigues.id
   cidr_block     = var.vcn_cidr
-  display_name   = "vcn-lab01"
+  display_name   = "vcn-instances"
 }
 
 resource "oci_core_subnet" "pub_subnet" {
   cidr_block     = var.subnet_cidr
   display_name   = "pub_subnet"
-  compartment_id = oci_identity_compartment.simpleinfra.id
+  compartment_id = oci_identity_compartment.crodrigues.id
   vcn_id         = oci_core_vcn.lab_vcn.id
 }
 
 resource "oci_core_internet_gateway" "generated_oci_core_internet_gateway" {
-  compartment_id = oci_identity_compartment.simpleinfra.id
+  compartment_id = oci_identity_compartment.crodrigues.id
   display_name   = "igw"
   enabled        = "true"
   vcn_id         = oci_core_vcn.lab_vcn.id
@@ -30,12 +30,13 @@ resource "oci_core_default_route_table" "generated_oci_core_default_route_table"
 }
 
 resource "oci_core_security_list" "sec_list" {
-  compartment_id = oci_identity_compartment.simpleinfra.id
+  compartment_id = oci_identity_compartment.crodrigues.id
   display_name   = "sec_list"
+  
   ingress_security_rules {
     description = "Allow all communicate"
     protocol    = "all"
-    source      = "0.0.0.0/0"
+    source      = "179.43.63.110/32" # Cleverson's Home
     stateless   = "false"
   }
   vcn_id = oci_core_vcn.lab_vcn.id
