@@ -7,7 +7,7 @@ variable "oci_region" {
 variable "oci_config_profile" {
   description = "OCI config profile to use for authentication"
   type        = string
-  default     = "DEFAULT"
+  default     = ""
 }
 
 # Compartment Configuration
@@ -38,7 +38,7 @@ variable "compartment_description" {
 variable "vcn_cidr_block" {
   description = "CIDR block for the VCN"
   type        = string
-  default     = "10.0.0.0/16"
+  default     = ""
 }
 
 variable "vcn_name" {
@@ -50,13 +50,13 @@ variable "vcn_name" {
 variable "private_subnet_cidr" {
   description = "CIDR block for the private subnet"
   type        = string
-  default     = "10.0.1.0/24"
+  default     = ""
 }
 
 variable "public_subnet_cidr" {
   description = "CIDR block for the public subnet"
   type        = string
-  default     = "10.0.2.0/24"
+  default     = ""
 }
 
 # PostgreSQL Database Configuration
