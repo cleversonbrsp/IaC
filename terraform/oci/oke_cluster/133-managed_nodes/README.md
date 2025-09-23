@@ -1,4 +1,4 @@
-# OKE Cluster with Managed Nodes (OCI) - 192.168.x.x Networking
+# OKE Cluster with Managed Nodes (OCI) - 192.168.x.x Networking.
 
 This Terraform project provisions an Oracle Cloud Infrastructure (OCI) OKE cluster using Managed Nodes, with VCN and subnets configured in the 192.168.0.0/18 address space.
 
