@@ -1,8 +1,20 @@
 # Ignorar arquivos sensíveis em todos os subdiretórios
 *.tfstate
 *.tfstate.backup
+*.tfstate.*
 .terraform/
 terraform.tfvars
+*.auto.tfvars
+*.auto.tfvars.json
+*.tfvars.json
+terraform.tfplan
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 *.pem
 *.key
 *.pub

@@ -17,3 +17,8 @@ variable "ssh_instances_key" {
   default = ""
   type    = string
 }
+
+variable "oci_config_profile" {
+  default = ""
+  type    = string
+}

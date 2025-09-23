@@ -1,7 +1,7 @@
 module "vcn" {
   source                       = "oracle-terraform-modules/vcn/oci"
   version                      = "3.6.0"
-  compartment_id               = var.comp_id
+  compartment_id               = coalesce(var.comp_id, var.compartment_id)
   region                       = var.oci_region
   internet_gateway_route_rules = null
   local_peering_gateways       = null
@@ -13,7 +13,7 @@ module "vcn" {
 
 ##### DHCP Options #####
 resource "oci_core_dhcp_options" "private-dhcp-options-for-oke-vcn-prod" {
-  compartment_id = var.comp_id
+  compartment_id = coalesce(var.comp_id, var.compartment_id)
   vcn_id         = module.vcn.vcn_id
   display_name   = "private-dhcp-options-for-oke-vcn-prod"
   options {
@@ -27,7 +27,7 @@ resource "oci_core_dhcp_options" "private-dhcp-options-for-oke-vcn-prod" {
 
 ##### Private Subnet definitions #####
 resource "oci_core_subnet" "vcn_private_subnet" {
-  compartment_id             = var.comp_id
+  compartment_id             = coalesce(var.comp_id, var.compartment_id)
   dhcp_options_id            = oci_core_dhcp_options.private-dhcp-options-for-oke-vcn-prod.id
   vcn_id                     = module.vcn.vcn_id
   cidr_block                 = "192.168.0.0/20"
@@ -38,7 +38,7 @@ resource "oci_core_subnet" "vcn_private_subnet" {
 }
 
 resource "oci_core_security_list" "private_subnet_sl" {
-  compartment_id = var.comp_id
+  compartment_id = coalesce(var.comp_id, var.compartment_id)
   vcn_id         = module.vcn.vcn_id
   display_name   = "virtual-nodes-private-node-subnet-sl"
   egress_security_rules {
@@ -155,7 +155,7 @@ resource "oci_core_security_list" "private_subnet_sl" {
 
 ##### Public Subnet definitions #####
 resource "oci_core_subnet" "vcn_public_subnet" {
-  compartment_id    = var.comp_id
+  compartment_id    = coalesce(var.comp_id, var.compartment_id)
   vcn_id            = module.vcn.vcn_id
   cidr_block        = "192.168.16.0/20"
   # Use default route table - no custom route table needed
@@ -164,7 +164,7 @@ resource "oci_core_subnet" "vcn_public_subnet" {
 }
 
 resource "oci_core_security_list" "public_subnet_sl" {
-  compartment_id = var.comp_id
+  compartment_id = coalesce(var.comp_id, var.compartment_id)
   vcn_id         = module.vcn.vcn_id
   display_name   = "virtual-nodes-public-api-subnet-sl"
   # Removed Service CIDR rule - using CIDR blocks instead
@@ -223,7 +223,7 @@ resource "oci_core_security_list" "public_subnet_sl" {
 
 ##### Service Subnet definitions #####
 resource "oci_core_subnet" "vcn_service_subnet" {
-  compartment_id    = var.comp_id
+  compartment_id    = coalesce(var.comp_id, var.compartment_id)
   vcn_id            = module.vcn.vcn_id
   cidr_block        = "192.168.32.0/20"
   # Use default route table - no custom route table needed
@@ -232,7 +232,7 @@ resource "oci_core_subnet" "vcn_service_subnet" {
 }
 
 resource "oci_core_security_list" "service_subnet_sl" {
-  compartment_id = var.comp_id
+  compartment_id = coalesce(var.comp_id, var.compartment_id)
   vcn_id         = module.vcn.vcn_id
   display_name   = "virtual-nodes-service-lb-subnet-sl"
   

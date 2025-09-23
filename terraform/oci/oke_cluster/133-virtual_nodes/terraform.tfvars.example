@@ -1,0 +1,19 @@
+# Example variables file for OKE Virtual Nodes
+# Copy this file to "terraform.tfvars" and replace placeholder values.
+
+# OCI region, e.g. "sa-saopaulo-1", "us-ashburn-1"
+oci_region = "sa-saopaulo-1"
+
+# OCI config profile name in ~/.oci/config
+oci_config_profile = "DEFAULT"
+
+# Availability Domain short name or suffix, e.g. "AD-1"
+oci_ad = "AD-1"
+
+# Compartment OCID where resources will be created
+comp_id = "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Path to your SSH public key used for instances access
+ssh_instances_key = "~/.ssh/id_rsa.pub"
+
+

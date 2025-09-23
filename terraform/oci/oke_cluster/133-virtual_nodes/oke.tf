@@ -2,7 +2,7 @@ resource "oci_containerengine_cluster" "k8s_cluster" {
   cluster_pod_network_options {
     cni_type = "OCI_VCN_IP_NATIVE"
   }
-  compartment_id     = oci_identity_compartment.crodrigues.id
+  compartment_id     = var.comp_id
   kubernetes_version = "v1.33.1"
   name               = "oke-cluster-virtual-nodes"
   vcn_id             = module.vcn.vcn_id
@@ -24,11 +24,11 @@ resource "oci_containerengine_cluster" "k8s_cluster" {
   type = "ENHANCED_CLUSTER"
 }
 data "oci_identity_availability_domains" "ads" {
-  compartment_id = oci_identity_compartment.crodrigues.id
+  compartment_id = var.comp_id
 }
 resource "oci_containerengine_virtual_node_pool" "k8s_prod_pool" {
   cluster_id     = oci_containerengine_cluster.k8s_cluster.id
-  compartment_id = oci_identity_compartment.crodrigues.id
+  compartment_id = var.comp_id
   display_name   = "virtual-nodes-pool"
   initial_virtual_node_labels {
     key   = "name"
