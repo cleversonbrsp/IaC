@@ -1,0 +1,23 @@
+# ========================================
+# TERRAFORM PROVIDER CONFIGURATION TEMPLATE
+# ========================================
+# This is a standard provider configuration used across all modules.
+# Copy this to your module's main.tf file.
+#
+# Note: Provider version should be kept consistent across all modules
+# to ensure compatibility and avoid version conflicts.
+
+terraform {
+  required_providers {
+    oci = {
+      source  = "oracle/oci"
+      version = "~>7.29.0"
+    }
+  }
+}
+
+provider "oci" {
+  config_file_profile = var.oci_config_profile
+  region              = var.oci_region
+}
+

@@ -1,0 +1,76 @@
+# ========================================
+# OCI USAGE REPORTS TO ADW - TERRAFORM CONFIG EXAMPLE
+# ========================================
+# Copie este arquivo para terraform.tfvars e substitua os valores pelos seus OCIDs reais
+
+# ========================================
+# REQUIRED - OCI IDENTIFIERS
+# ========================================
+tenancy_ocid      = "ocid1.tenancy.oc1..aaaaaaaa..."  # Substitua pelo seu Tenancy OCID
+region            = "sa-saopaulo-1"                   # Região OCI (Home Region obrigatório)
+oci_config_profile = "devopsguide"                    # Perfil OCI configurado em ~/.oci/config
+compartment_ocid  = "ocid1.compartment.oc1..aaaaaaaa..." # Compartment onde criar recursos
+
+# ========================================
+# OPTIONAL - TAGS
+# ========================================
+service_tags = {
+  freeformTags = {
+    Project     = "Usage2ADW"
+    Environment = "Production"
+    Owner       = "DevOps"
+    CostCenter  = "IT"
+  }
+  definedTags = {}
+}
+
+# ========================================
+# IAM CONFIGURATION
+# ========================================
+option_iam               = "New IAM Dynamic Group and Policy will be created"
+new_policy_name          = "Usage2ADW-Policy"
+new_dynamic_group_name   = "Usage2ADW-DynamicGroup"
+
+# ========================================
+# LOAD BALANCER CONFIGURATION
+# ========================================
+option_loadbalancer      = "Do Not Provision Public Load Balancer"  # ou "Provision Public Load Balancer"
+loadbalancer_name        = "usage2adw-lb"
+db_network_nsg_name      = "usage2adw-nsg"  # Nome do NSG (criado automaticamente)
+
+# ========================================
+# AUTONOMOUS DATABASE CONFIGURATION
+# ========================================
+option_autonomous_database = "Public Endpoint"  # ou "Private Endpoint"
+db_db_name                 = "USAGE2ADW"
+db_secret_compartment_id   = "ocid1.compartment.oc1..aaaaaaaa..." # Compartment do Vault
+db_secret_id               = "ocid1.vaultsecret.oc1..aaaaaaaa..." # Secret com senha ADW
+db_license_model           = "LICENSE_INCLUDED"  # ou "BRING_YOUR_OWN_LICENSE"
+db_private_end_point_label = "usage2adw-pe"      # Apenas se Private Endpoint
+
+# ========================================
+# COMPUTE INSTANCE CONFIGURATION
+# ========================================
+ssh_public_key                = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC..." # Sua chave SSH pública
+instance_shape                = "VM.Standard.E4.Flex"  # Shape da VM
+instance_name                 = "usage2adw-vm"
+instance_availability_domain  = "AD-1"  # Availability Domain (AD-1, AD-2, AD-3)
+
+# ========================================
+# USAGE REPORTS EXTRACTION CONFIGURATION
+# ========================================
+extract_from_date             = "2023-01"  # Data início extração (formato YYYY-MM)
+extract_tag1_special_key      = "Project"   # Tag especial 1 para relatórios
+extract_tag2_special_key      = "Owner"     # Tag especial 2 para relatórios  
+extract_tag3_special_key      = "CostCenter" # Tag especial 3 para relatórios
+extract_tag4_special_key      = "Environment" # Tag especial 4 para relatórios
+
+# ========================================
+# ORACLE ANALYTICS CLOUD (OPCIONAL)
+# ========================================
+option_oac                           = "Do Not Deploy Oracle Analytics Cloud"  # ou "Deploy Oracle Analytics Cloud"
+analytics_instance_name               = "usage2adw-oac"
+analytics_instance_capacity_value     = "1"  # OLPU count
+analytics_instance_feature_set        = "OAC Enterprise Edition"  # ou "OAC Standard Edition"
+analytics_instance_license_type       = "LICENSE_INCLUDED"
+analytics_instance_idcs_access_token  = ""  # Se necessário para OAC

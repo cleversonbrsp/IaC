@@ -1,0 +1,45 @@
+# ========================================
+# COMMON TERRAFORM VARIABLES EXAMPLE
+# ========================================
+# This file contains common variable values used across all modules.
+# 
+# Usage:
+# 1. Copy this file to each module's directory as terraform.tfvars
+# 2. Customize module-specific values in each module's terraform.tfvars
+# 3. Uncomment and fill in values specific to your environment
+#
+# Note: Each module requires its own terraform.tfvars file, but you can
+# use this as a template to maintain consistency across modules.
+#
+# ========================================
+# OCI Provider Configuration
+# ========================================
+oci_region         = "sa-saopaulo-1"
+oci_config_profile = "devopsguide"
+
+# ========================================
+# Compartment Configuration
+# ========================================
+compartment_id = "ocid1.compartment.oc1..aaaaaaaanarmyd6cfpqvue2zuwcfgizivyu4nfzgpjc4twepwxpr3t4wyejq"
+
+# ========================================
+# Common Tags (applied to all resources)
+# ========================================
+common_tags = {
+  defined_tags = {
+    "finops.cr" = "lab"
+  }
+}
+
+# ========================================
+# Module-Specific Variables
+# ========================================
+# Each module will have additional variables specific to its resources.
+# Refer to each module's variables.tf and terraform.tfvars for details:
+#
+# - network/terraform.tfvars          : VCN and subnet configurations
+# - instance/terraform.tfvars         : Compute instance configurations
+# - cluster-k8s/terraform.tfvars      : OKE cluster configurations
+# - dbsystem/terraform.tfvars         : PostgreSQL DB System configurations
+# - bucket/terraform.tfvars           : Object Storage bucket configurations
+

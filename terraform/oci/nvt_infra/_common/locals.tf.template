@@ -1,0 +1,23 @@
+# ========================================
+# COMMON LOCALS TEMPLATE
+# ========================================
+# Use this locals block in your module to consolidate common patterns
+# and reduce repetition of coalesce() calls throughout resource definitions.
+#
+# Benefits:
+# - Single source of truth for compartment and tags resolution
+# - Cleaner resource definitions
+# - Easier maintenance when patterns need to change
+#
+# Usage in resources:
+#   compartment_id = local.compartment_id
+#   defined_tags   = local.defined_tags
+
+locals {
+  # Resolve compartment ID (supports both compartment_id and legacy comp_id)
+  compartment_id = coalesce(var.comp_id, var.compartment_id)
+  
+  # Resolve tags (common_tags take precedence, defined_tags is override)
+  defined_tags = coalesce(var.common_tags.defined_tags, var.defined_tags)
+}
+
