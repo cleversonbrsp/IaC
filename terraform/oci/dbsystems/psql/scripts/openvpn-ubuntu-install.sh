@@ -31,7 +31,7 @@ if systemctl is-active --quiet openvpn@server; then
 
             # Port from server config (same as Terraform openvpn_port)
             OVPN_PORT=$(grep -E '^port ' /etc/openvpn/server/server.conf 2>/dev/null | awk '{print $2}')
-            OVPN_PORT=${OVPN_PORT:-1194}
+            OVPN_PORT=$${OVPN_PORT:-1194}
 
             # Generate client certificate
             cd /etc/openvpn/easy-rsa

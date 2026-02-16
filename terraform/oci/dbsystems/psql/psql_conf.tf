@@ -1,4 +1,4 @@
-# 2 - Configuração PostgreSQL (após compartment)
+# Configuração do PostgreSQL (shape, versão, overrides). Usada pelo DB system (psql.tf).
 resource "oci_psql_configuration" "psql_config" {
   compartment_id = local.compartment_id
   db_version     = var.db_version
