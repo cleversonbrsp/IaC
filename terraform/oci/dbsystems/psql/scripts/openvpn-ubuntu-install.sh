@@ -133,10 +133,10 @@ else
         exit
 fi
 
-if [[ $OS == "ubuntu" && ( $VERSION_ID == "20.04" || $VERSION_ID == "22.04" ) ]]; then
+if [[ $OS == "ubuntu" && ( $VERSION_ID == "20.04" || $VERSION_ID == "22.04" || $VERSION_ID == "24.04" ) ]]; then
         echo "Supported Ubuntu version detected: $VERSION_ID"
 else
-        echo "Unsupported version: $OS $VERSION_ID. This script supports Ubuntu 20.04 and 22.04."
+        echo "Unsupported version: $OS $VERSION_ID. This script supports Ubuntu 20.04, 22.04 and 24.04."
         exit
 fi
 
