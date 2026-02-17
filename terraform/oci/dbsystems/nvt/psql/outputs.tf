@@ -11,12 +11,17 @@ output "subnet_id" {
   value = oci_core_subnet.postgresql_subnet.id
 }
 
-# PostgreSQL
+# PostgreSQL (HOT)
 output "psql_configuration_id" { value = oci_psql_configuration.psql_config.id }
 output "db_system_id" { value = oci_psql_db_system.postgresql_db_system.id }
 output "db_system_display_name" { value = oci_psql_db_system.postgresql_db_system.display_name }
 output "state" { value = oci_psql_db_system.postgresql_db_system.state }
 output "primary_endpoint_private_ip" { value = var.primary_db_endpoint_private_ip }
+
+# PostgreSQL (COLD)
+output "db_system_cold_id" { value = oci_psql_db_system.postgresql_db_system_cold.id }
+output "db_system_cold_display_name" { value = oci_psql_db_system.postgresql_db_system_cold.display_name }
+output "cold_primary_endpoint_private_ip" { value = var.cold_primary_db_endpoint_private_ip }
 
 # OpenVPN
 output "vpn_public_ip" {

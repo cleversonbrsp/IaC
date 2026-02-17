@@ -1,7 +1,14 @@
 # --- Provider / comum ---
 variable "oci_region" {
-  type    = string
-  default = ""
+  type        = string
+  description = "Região onde criar VCN, subnets, DB systems, instâncias (ex.: us-ashburn-1)"
+  default     = ""
+}
+
+variable "home_region" {
+  type        = string
+  description = "Home region do tenancy; Identity (compartments) só aceita operações aqui (ex.: sa-saopaulo-1 para GRU)"
+  default     = "sa-saopaulo-1"
 }
 
 variable "oci_config_profile" {
@@ -87,6 +94,37 @@ variable "backup_kind" {
 variable "backup_retention_days" {
   type    = number
   default = 0
+}
+
+# --- DB System COLD (override de configuração do HOT) ---
+variable "cold_db_system_display_name" {
+  type    = string
+  default = ""
+}
+variable "cold_db_system_description" {
+  type    = string
+  default = ""
+}
+variable "cold_instance_memory_size_in_gbs" {
+  type    = number
+  default = 0
+}
+variable "cold_instance_ocpu_count" {
+  type    = number
+  default = 0
+}
+variable "cold_backup_kind" {
+  type    = string
+  default = ""
+}
+variable "cold_backup_retention_days" {
+  type    = number
+  default = 0
+}
+variable "cold_primary_db_endpoint_private_ip" {
+  type        = string
+  description = "IP privado do endpoint primário do DBSystem COLD"
+  default     = ""
 }
 
 variable "vcn_cidr_block" {

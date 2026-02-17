@@ -4,6 +4,8 @@ resource "oci_psql_configuration" "psql_config" {
   db_version     = var.db_version
   display_name   = "psql-hot-cold-lab-config"
 
+  depends_on = [time_sleep.wait_compartment_propagation]
+
   db_configuration_overrides {
     items {
       config_key             = "log_connections"
@@ -12,7 +14,8 @@ resource "oci_psql_configuration" "psql_config" {
   }
 
   shape                       = "VM.Standard.E5.Flex"
-  instance_memory_size_in_gbs = var.instance_memory_size_in_gbs
-  instance_ocpu_count         = var.instance_ocpu_count
+  # E5.Flex exige memória entre 16 e 64 GB na configuration; DB systems podem usar menos no recurso
+  instance_memory_size_in_gbs = max(16, var.instance_memory_size_in_gbs, var.cold_instance_memory_size_in_gbs)
+  instance_ocpu_count         = max(1, var.instance_ocpu_count, var.cold_instance_ocpu_count)
   defined_tags                = var.common_tags.defined_tags
 }

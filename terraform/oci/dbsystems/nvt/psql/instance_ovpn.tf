@@ -4,6 +4,7 @@ resource "oci_core_instance" "vpn" {
   compartment_id      = local.compartment_id
   display_name        = var.instance_display_name
   shape               = var.instance_shape
+  defined_tags        = var.common_tags.defined_tags
 
   shape_config {
     memory_in_gbs = var.instance_memory_gb
