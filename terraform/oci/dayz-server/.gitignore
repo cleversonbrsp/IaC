@@ -1,17 +1,28 @@
-# Ignorar diretórios .terraform em qualquer nível
-**/.terraform/
+# Terraform
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfplan
+*.tfvars.backup
 
-# Ignorar arquivos de estado do Terraform
-**/terraform.tfstate
-**/terraform.tfstate.backup
-**/.terraform.lock.hcl
+# Terraform state files (podem estar na raiz ou em terraform/)
+terraform.tfstate*
+*.tfplan
 
-# Ignorar arquivos de variáveis sensíveis (opcional)
-**/terraform.tfvars
+# Sensitive files
+terraform/terraform.tfvars
 
-# Ignorar arquivos de backup de output
-**/*.bkp
+# Logs
+*.log
 
-# Ignorar outros arquivos desnecessários
+# OS
 .DS_Store
-user-data.sh
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
