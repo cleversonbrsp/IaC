@@ -1,0 +1,77 @@
+# =============================================================================
+# Example variables for the PostgreSQL Hot/Cold Lab (OCI).
+# Copy to terraform.tfvars and replace placeholders with your values.
+# Do not commit terraform.tfvars (it is in .gitignore).
+# =============================================================================
+
+oci_region         = "us-ashburn-1"
+oci_config_profile = "DEFAULT"
+home_region        = "sa-saopaulo-1"   # Tenancy home region (required for compartment creation)
+
+parent_compartment_id = "ocid1.compartment.oc1..REPLACE_WITH_YOUR_PARENT_COMPARTMENT_OCID"
+
+primary_db_endpoint_private_ip = "10.0.10.10"
+availability_domain            = "REPLACE_WITH_AVAILABILITY_DOMAIN"   # e.g. giZW:US-ASHBURN-AD-1
+
+db_system_display_name      = "pg-hot-lab"
+db_system_description       = "DB System HOT - lab"
+db_version                  = "14"
+instance_count              = 1
+instance_memory_size_in_gbs  = 8
+instance_ocpu_count          = 1
+db_system_shape             = "PostgreSQL.VM.Standard.E5.Flex"
+system_type                 = "OCI_OPTIMIZED_STORAGE"
+
+maintenance_window_start   = "MON 00:00"
+backup_start               = "00:00"
+backup_days_of_the_month   = [1]
+backup_days_of_the_week    = ["MONDAY"]
+backup_kind                = "MONTHLY"
+backup_retention_days      = 7
+
+storage_iops          = "75000"
+is_regionally_durable  = false
+
+# DB System COLD (archive)
+cold_db_system_display_name          = "pg-cold-archive"
+cold_db_system_description           = "DB System COLD - archive"
+cold_instance_memory_size_in_gbs      = 8
+cold_instance_ocpu_count              = 1
+cold_primary_db_endpoint_private_ip   = "10.0.10.11"
+cold_backup_kind                     = "NONE"
+cold_backup_retention_days            = 0
+
+vcn_cidr_block      = "10.0.0.0/16"
+vcn_display_name    = "postgresql-vcn"
+vcn_dns_label       = "psqlvcn"
+subnet_cidr_block   = "10.0.10.0/24"
+subnet_display_name = "postgresql-subnet"
+subnet_dns_label    = "psqlsubnet"
+nsg_display_name    = "postgresql-nsg"
+
+is_reader_endpoint_enabled = false
+
+db_username = "admin"
+db_password = "REPLACE_WITH_SECURE_PASSWORD"   # Or use db_password_secret_id (OCI Vault) and leave this empty
+
+source_type = "NONE"
+
+ssh_public_key_path  = "~/.ssh/id_rsa.pub"
+ssh_private_key_path = "~/.ssh/id_rsa"
+
+# Ubuntu image OCID for the OpenVPN instance (region-specific; get from OCI Console or CLI).
+image_id = "ocid1.image.oc1.REGION.REPLACE_WITH_UBUNTU_IMAGE_OCID"
+
+vpn_subnet_cidr       = "10.0.20.0/24"
+db_subnet_cidr        = "10.0.10.0/24"
+openvpn_port          = 1194
+instance_display_name = "openvpn-psql-lab"
+instance_shape        = "VM.Standard.E3.Flex"
+instance_memory_gb    = 8
+instance_ocpus        = 1
+ssh_allowed_cidr      = "0.0.0.0/0"   # Restrict in production (e.g. your office IP/CIDR)
+
+# Optional: defined tags (namespace must exist in your tenancy, e.g. Governance → Tag Namespaces).
+common_tags = {
+  defined_tags = {}
+}

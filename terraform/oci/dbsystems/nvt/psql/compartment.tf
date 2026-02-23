@@ -1,4 +1,4 @@
-# 1 - Compartment (primeiro). Identity exige home region (ex.: GRU).
+# 1 - Compartment (first). Identity requires home region (e.g. GRU).
 resource "oci_identity_compartment" "psql_hot_cold_lab" {
   provider       = oci.home
   compartment_id = var.parent_compartment_id

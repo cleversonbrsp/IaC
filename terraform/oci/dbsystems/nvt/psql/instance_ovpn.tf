@@ -1,4 +1,4 @@
-# Instância OpenVPN (IP público efêmero na VNIC). Rede e NSG em network.tf.
+# OpenVPN instance (ephemeral public IP on VNIC). Network and NSG in network.tf.
 resource "oci_core_instance" "vpn" {
   availability_domain = var.availability_domain
   compartment_id      = local.compartment_id

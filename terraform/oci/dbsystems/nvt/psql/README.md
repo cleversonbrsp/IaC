@@ -168,7 +168,7 @@ Set all values in `terraform.tfvars` (see [Security notes](#security-notes)); do
 
 ## Quick Start
 
-1. **Copy and edit variables** (create `terraform.tfvars` if needed; an example is in the parent [NVT README](../README.md)):
+1. **Copy and edit variables**: `cp terraform.tfvars.example terraform.tfvars`, then edit `terraform.tfvars` with your OCIDs, availability domain, password, SSH key paths, and image OCID.
 
    - `parent_compartment_id`, `oci_region`, `home_region`
    - `availability_domain`, `primary_db_endpoint_private_ip`, `cold_primary_db_endpoint_private_ip`
@@ -261,6 +261,7 @@ psql/
 ├── instance_ovpn.tf          # OpenVPN instance (user_data = script)
 ├── variables.tf
 ├── outputs.tf
+├── terraform.tfvars.example  # Example variables (safe to commit); copy to terraform.tfvars
 ├── terraform.tfvars          # Your values (excluded from git when containing secrets)
 ├── .gitignore
 └── scripts/

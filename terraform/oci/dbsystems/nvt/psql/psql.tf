@@ -1,6 +1,6 @@
-# 4 - DB systems PostgreSQL (após configuration e redes, inclusive VPN)
+# 4 - PostgreSQL DB systems (after configuration and networks, including VPN)
 
-# DBSystem HOT
+# DB System HOT
 resource "oci_psql_db_system" "postgresql_db_system" {
   display_name   = var.db_system_display_name
   description    = coalesce(var.db_system_description, var.db_system_display_name)
@@ -17,7 +17,7 @@ resource "oci_psql_db_system" "postgresql_db_system" {
   }
 
   instance_count              = var.instance_count
-  # E5.Flex exige memória entre 16 e 64 GB também no DB System
+  # E5.Flex requires memory between 16 and 64 GB in the DB System as well
   instance_memory_size_in_gbs = max(16, var.instance_memory_size_in_gbs)
   instance_ocpu_count         = var.instance_ocpu_count
   shape                       = var.db_system_shape
@@ -72,7 +72,7 @@ resource "oci_psql_db_system" "postgresql_db_system" {
   depends_on = [oci_core_subnet.vpn_subnet]
 }
 
-# DBSystem COLD
+# DB System COLD
 resource "oci_psql_db_system" "postgresql_db_system_cold" {
   display_name   = coalesce(var.cold_db_system_display_name, "pg-cold-archive")
   description    = coalesce(var.cold_db_system_description, "COLD - ${coalesce(var.db_system_description, var.db_system_display_name)}")
@@ -89,7 +89,7 @@ resource "oci_psql_db_system" "postgresql_db_system_cold" {
   }
 
   instance_count              = var.instance_count
-  # E5.Flex exige memória entre 16 e 64 GB também no DB System
+  # E5.Flex requires memory between 16 and 64 GB in the DB System as well
   instance_memory_size_in_gbs = max(16, var.cold_instance_memory_size_in_gbs != 0 ? var.cold_instance_memory_size_in_gbs : var.instance_memory_size_in_gbs)
   instance_ocpu_count         = var.cold_instance_ocpu_count != 0 ? var.cold_instance_ocpu_count : var.instance_ocpu_count
   shape                       = var.db_system_shape

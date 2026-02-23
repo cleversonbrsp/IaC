@@ -1,9 +1,9 @@
 # =============================================================================
-# Rede unificada: VCN, gateways, subnets, security lists e NSGs
+# Unified network: VCN, gateways, subnets, security lists and NSGs
 # =============================================================================
-# - VCN única para o lab (PostgreSQL + OpenVPN na mesma VCN).
-# - Subnet DB: privada, sem IP público; PostgreSQL e SSH acessíveis de toda a VCN.
-# - Subnet VPN: com rota para IGW (IP público na VNIC); OpenVPN UDP + SSH da internet.
+# - Single VCN for the lab (PostgreSQL + OpenVPN in the same VCN).
+# - DB subnet: private, no public IP; PostgreSQL and SSH accessible from entire VCN.
+# - VPN subnet: route to IGW (public IP on VNIC); OpenVPN UDP + SSH from internet.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -22,7 +22,7 @@ resource "oci_core_vcn" "postgresql_vcn" {
 # -----------------------------------------------------------------------------
 # Internet Gateway
 # -----------------------------------------------------------------------------
-# Necessário para o IP público da instância OpenVPN ser acessível da internet.
+# Required for the OpenVPN instance public IP to be reachable from the internet.
 resource "oci_core_internet_gateway" "igw" {
   compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.postgresql_vcn.id
@@ -32,9 +32,9 @@ resource "oci_core_internet_gateway" "igw" {
 }
 
 # =============================================================================
-# Subnet PostgreSQL (DB) — privada
+# PostgreSQL (DB) subnet — private
 # =============================================================================
-# prohibit_public_ip_on_vnic = true. Acesso ao DB via VPN (subnet VPN na mesma VCN).
+# prohibit_public_ip_on_vnic = true. DB access via VPN (VPN subnet in same VCN).
 
 resource "oci_core_subnet" "postgresql_subnet" {
   cidr_block                 = var.subnet_cidr_block
@@ -47,7 +47,7 @@ resource "oci_core_subnet" "postgresql_subnet" {
   security_list_ids          = [oci_core_security_list.postgresql_sec_list.id]
 }
 
-# Security list da subnet DB: 5432 e 22 de toda a VCN (inclui subnet VPN para acesso via OpenVPN).
+# Security list for DB subnet: 5432 and 22 from entire VCN (includes VPN subnet for OpenVPN access).
 resource "oci_core_security_list" "postgresql_sec_list" {
   compartment_id = local.compartment_id
   display_name   = "${var.subnet_display_name}-seclist"
@@ -62,7 +62,7 @@ resource "oci_core_security_list" "postgresql_sec_list" {
     stateless        = false
   }
   ingress_security_rules {
-    description = "PostgreSQL 5432 from VCN (inclui subnet VPN)"
+    description = "PostgreSQL 5432 from VCN (includes VPN subnet)"
     protocol    = "6"
     source      = var.vcn_cidr_block
     stateless   = false
@@ -83,7 +83,7 @@ resource "oci_core_security_list" "postgresql_sec_list" {
   }
 }
 
-# NSG do DB system (PostgreSQL).
+# NSG for the DB system (PostgreSQL).
 resource "oci_core_network_security_group" "postgresql_nsg" {
   compartment_id = local.compartment_id
   display_name   = var.nsg_display_name
@@ -116,9 +116,9 @@ resource "oci_core_network_security_group_security_rule" "postgresql_nsg_egress"
 }
 
 # =============================================================================
-# Subnet VPN (OpenVPN) — com IP público na VNIC
+# VPN subnet (OpenVPN) — public IP on VNIC
 # =============================================================================
-# Route table: default para IGW para tráfego internet. prohibit_public_ip_on_vnic = false.
+# Route table: default to IGW for internet traffic. prohibit_public_ip_on_vnic = false.
 
 resource "oci_core_route_table" "vpn_route_table" {
   compartment_id = local.compartment_id
@@ -146,7 +146,7 @@ resource "oci_core_subnet" "vpn_subnet" {
   route_table_id             = oci_core_route_table.vpn_route_table.id
 }
 
-# Security list da subnet VPN: SSH da internet + SSH/5432 de subnets internas.
+# Security list for VPN subnet: SSH from internet + SSH/5432 from internal subnets.
 resource "oci_core_security_list" "vpn_sec_list" {
   compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.postgresql_vcn.id
@@ -191,7 +191,7 @@ resource "oci_core_security_list" "vpn_sec_list" {
   }
 }
 
-# NSG da instância OpenVPN (regras adicionais; OpenVPN UDP é só no NSG).
+# NSG for the OpenVPN instance (additional rules; OpenVPN UDP is only in NSG).
 resource "oci_core_network_security_group" "vpn_nsg" {
   compartment_id = local.compartment_id
   vcn_id         = oci_core_vcn.postgresql_vcn.id

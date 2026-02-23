@@ -1,13 +1,13 @@
-# --- Provider / comum ---
+# --- Provider / common ---
 variable "oci_region" {
   type        = string
-  description = "Região onde criar VCN, subnets, DB systems, instâncias (ex.: us-ashburn-1)"
+  description = "Region where to create VCN, subnets, DB systems, instances (e.g. us-ashburn-1)"
   default     = ""
 }
 
 variable "home_region" {
   type        = string
-  description = "Home region do tenancy; Identity (compartments) só aceita operações aqui (ex.: sa-saopaulo-1 para GRU)"
+  description = "Tenancy home region; Identity (compartments) only accepts operations here (e.g. sa-saopaulo-1 for GRU)"
   default     = "sa-saopaulo-1"
 }
 
@@ -18,13 +18,13 @@ variable "oci_config_profile" {
 
 variable "parent_compartment_id" {
   type        = string
-  description = "OCID do compartment pai onde psql_hot_cold_lab será criado"
+  description = "OCID of the parent compartment where psql_hot_cold_lab will be created"
   default     = ""
 }
 
 variable "compartment_id" {
   type        = string
-  description = "OCID do compartment (default: o compartment criado)"
+  description = "OCID of the compartment (default: the created compartment)"
   default     = null
 }
 
@@ -96,7 +96,7 @@ variable "backup_retention_days" {
   default = 0
 }
 
-# --- DB System COLD (override de configuração do HOT) ---
+# --- DB System COLD (configuration overrides for HOT) ---
 variable "cold_db_system_display_name" {
   type    = string
   default = ""
@@ -123,7 +123,7 @@ variable "cold_backup_retention_days" {
 }
 variable "cold_primary_db_endpoint_private_ip" {
   type        = string
-  description = "IP privado do endpoint primário do DBSystem COLD"
+  description = "Private IP of the primary endpoint for the COLD DB System"
   default     = ""
 }
 
@@ -158,7 +158,7 @@ variable "nsg_display_name" {
 
 variable "primary_db_endpoint_private_ip" {
   type        = string
-  description = "IP privado do endpoint primário (dentro do subnet_cidr_block)"
+  description = "Private IP of the primary endpoint (within subnet_cidr_block)"
   default     = ""
 }
 
@@ -196,7 +196,7 @@ variable "is_having_restore_config_overrides" {
 
 variable "availability_domain" {
   type        = string
-  description = "Availability Domain (ex.: YCyV:SA-SAOPAULO-1-AD-1)"
+  description = "Availability Domain (e.g. YCyV:SA-SAOPAULO-1-AD-1)"
   default     = ""
 }
 
@@ -212,19 +212,19 @@ variable "is_regionally_durable" {
 # --- OpenVPN ---
 variable "ssh_public_key_path" {
   type        = string
-  description = "Caminho da chave SSH pública para a instância OpenVPN"
+  description = "Path to the SSH public key for the OpenVPN instance"
   default     = ""
 }
 
 variable "ssh_private_key_path" {
   type        = string
-  description = "Opcional; reservado para uso em scripts."
+  description = "Optional; reserved for use in scripts."
   default     = ""
 }
 
 variable "image_id" {
   type        = string
-  description = "OCID da imagem Ubuntu para a instância OpenVPN"
+  description = "OCID of the Ubuntu image for the OpenVPN instance"
   default     = ""
 }
 

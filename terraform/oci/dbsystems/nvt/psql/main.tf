@@ -11,20 +11,20 @@ terraform {
   }
 }
 
-# Região onde os recursos (VCN, compute, DB) serão criados
+# Region where resources (VCN, compute, DB) will be created
 provider "oci" {
   config_file_profile = var.oci_config_profile
   region              = var.oci_region
 }
 
-# Home region do tenancy: Identity (compartments) só aceita CREATE/UPDATE/DELETE na home region
+# Tenancy home region: Identity (compartments) only accepts CREATE/UPDATE/DELETE in the home region
 provider "oci" {
   alias               = "home"
   config_file_profile = var.oci_config_profile
   region              = var.home_region
 }
 
-# Aguarda propagação do compartment na região (evita 404 ao criar VCN/Psql em região não-home)
+# Wait for compartment propagation across regions (avoids 404 when creating VCN/Psql in non-home region)
 resource "time_sleep" "wait_compartment_propagation" {
   create_duration = "90s"
   depends_on      = [oci_identity_compartment.psql_hot_cold_lab]

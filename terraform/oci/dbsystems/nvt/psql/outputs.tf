@@ -1,4 +1,4 @@
-# Compartment e rede
+# Compartment and network
 output "compartment_id" {
   value = local.compartment_id
 }
@@ -26,12 +26,12 @@ output "cold_primary_endpoint_private_ip" { value = var.cold_primary_db_endpoint
 # OpenVPN
 output "vpn_public_ip" {
   value       = oci_core_instance.vpn.public_ip
-  description = "IP público efêmero para conectar ao OpenVPN (remote no .ovpn)"
+  description = "Ephemeral public IP to connect to OpenVPN (remote in .ovpn file)"
 }
 
 output "vpn_subnet_id" { value = oci_core_subnet.vpn_subnet.id }
 
 output "ssh_connect" {
   value       = "ssh ubuntu@${oci_core_instance.vpn.public_ip}"
-  description = "SSH na instância OpenVPN"
+  description = "SSH to the OpenVPN instance"
 }
