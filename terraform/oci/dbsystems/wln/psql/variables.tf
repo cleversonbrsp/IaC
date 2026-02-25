@@ -90,6 +90,11 @@ variable "backup_retention_days" {
 }
 
 # --- DB System COLD (override de configuração do HOT) ---
+variable "create_cold_db_system" {
+  type        = bool
+  description = "Se true, cria o DB System COLD (archive). Se false, aplica apenas o HOT."
+  default     = false
+}
 variable "cold_db_system_display_name" {
   type    = string
   default = ""
@@ -252,4 +257,16 @@ variable "instance_ocpus" {
 variable "ssh_allowed_cidr" {
   type    = string
   default = ""
+}
+
+# --- Object Storage (billing archive) ---
+variable "bucket_name" {
+  type        = string
+  description = "Nome do bucket Object Storage (billing archive)"
+  default     = ""
+}
+variable "bucket_namespace" {
+  type        = string
+  description = "Namespace do Object Storage do tenancy OCI"
+  default     = ""
 }

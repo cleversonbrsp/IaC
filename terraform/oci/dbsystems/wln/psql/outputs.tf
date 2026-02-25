@@ -30,3 +30,13 @@ output "ssh_connect" {
   value       = "ssh ubuntu@${oci_core_instance.vpn.public_ip}"
   description = "SSH na instância OpenVPN"
 }
+
+# Object Storage (billing archive)
+output "bucket_name" {
+  value       = oci_objectstorage_bucket.billing_archive.name
+  description = "Nome do bucket de archive (billing)"
+}
+output "bucket_namespace" {
+  value       = oci_objectstorage_bucket.billing_archive.namespace
+  description = "Namespace do Object Storage do tenant"
+}

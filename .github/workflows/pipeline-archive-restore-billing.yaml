@@ -1,0 +1,165 @@
+# -----------------------------------------------------------------------------
+# Archive/Restore billing data (bill + bill_item)
+# Roda sob demanda: COPY/CSV <-> PostgreSQL + OCI Object Storage
+#
+# Secrets necessários (por ambiente): PGHOST_*, PGUSER_*, PGPASSWORD_*
+# (itau, all, vivo, telefonica). Para OCI: OCI_CONFIG (conteúdo de ~/.oci/config).
+# -----------------------------------------------------------------------------
+name: Archive/Restore billing data
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: "Ambiente de destino (DB System)"
+        required: true
+        type: choice
+        options:
+          - itau
+          - all
+          - vivo
+          - telefonica
+
+      company_id:
+        description: "Company ID"
+        required: true
+        type: string
+
+      year:
+        description: "Ano (YYYY)"
+        required: true
+        type: string
+
+      acao:
+        description: "Tipo de operação"
+        required: true
+        type: choice
+        options:
+          - arquivar
+          - restaurar
+
+env:
+  PGPORT: 5432
+  PGDATABASE: billing
+  BUCKET_NAME: navita-billing-archive
+
+jobs:
+  archive-restore:
+    # Use grupo/runner com acesso à rede do DB e OCI (ex.: db_archive_runner).
+    # Para teste em runner GitHub-hosted: ubuntu-latest + steps para instalar postgresql-client e oci-cli.
+    runs-on:
+      group: db_archive_runner
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Definir conexões conforme ambiente
+        id: set-env
+        run: |
+          case "${{ github.event.inputs.ambiente }}" in
+            itau)
+              echo "PGHOST=${{ secrets.PGHOST_ITAU }}" >> $GITHUB_ENV
+              echo "PGUSER=${{ secrets.PGUSER_ITAU }}" >> $GITHUB_ENV
+              echo "PGPASSWORD=${{ secrets.PGPASSWORD_ITAU }}" >> $GITHUB_ENV
+              echo "BUCKET_PREFIX=itau" >> $GITHUB_ENV
+              ;;
+            all)
+              echo "PGHOST=${{ secrets.PGHOST_ALL }}" >> $GITHUB_ENV
+              echo "PGUSER=${{ secrets.PGUSER_ALL }}" >> $GITHUB_ENV
+              echo "PGPASSWORD=${{ secrets.PGPASSWORD_ALL }}" >> $GITHUB_ENV
+              echo "BUCKET_PREFIX=all" >> $GITHUB_ENV
+              ;;
+            vivo)
+              echo "PGHOST=${{ secrets.PGHOST_VIVO }}" >> $GITHUB_ENV
+              echo "PGUSER=${{ secrets.PGUSER_VIVO }}" >> $GITHUB_ENV
+              echo "PGPASSWORD=${{ secrets.PGPASSWORD_VIVO }}" >> $GITHUB_ENV
+              echo "BUCKET_PREFIX=vivo" >> $GITHUB_ENV
+              ;;
+            telefonica)
+              echo "PGHOST=${{ secrets.PGHOST_TEL }}" >> $GITHUB_ENV
+              echo "PGUSER=${{ secrets.PGUSER_TEL }}" >> $GITHUB_ENV
+              echo "PGPASSWORD=${{ secrets.PGPASSWORD_TEL }}" >> $GITHUB_ENV
+              echo "BUCKET_PREFIX=telefonica" >> $GITHUB_ENV
+              ;;
+            *)
+              echo "::error::Ambiente inválido: ${{ github.event.inputs.ambiente }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Configurar OCI CLI
+        run: |
+          mkdir -p "$HOME/.oci"
+          # Conteúdo do ~/.oci/config (ou use OCI_KEY_CONTENT + OCI_TENANCY_ID etc. se preferir)
+          echo '${{ secrets.OCI_CONFIG }}' > "$HOME/.oci/config"
+          chmod 600 "$HOME/.oci/config"
+          echo "OCI_CONFIG_FILE=$HOME/.oci/config" >> $GITHUB_ENV
+
+      - name: Arquivar dados (COPY -> bucket -> DELETE)
+        if: github.event.inputs.acao == 'arquivar'
+        run: |
+          set -e
+          COMPANY_ID="${{ github.event.inputs.company_id }}"
+          YEAR="${{ github.event.inputs.year }}"
+          START_DATE="${YEAR}-01-01"
+          END_YEAR=$((YEAR + 1))
+          END_DATE="${END_YEAR}-01-01"
+
+          ARCHIVE_DIR="archive/${BUCKET_PREFIX}/company_id_${COMPANY_ID}/${YEAR}"
+          mkdir -p "${ARCHIVE_DIR}"
+
+          BILL_CSV="${ARCHIVE_DIR}/bill.csv"
+          BILL_ITEM_CSV="${ARCHIVE_DIR}/bill_item.csv"
+
+          echo "Exportando bill (company_id=${COMPANY_ID}, ${START_DATE} a ${END_DATE})..."
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "\copy (SELECT * FROM bill WHERE company_id = ${COMPANY_ID} AND due_date >= '${START_DATE}' AND due_date < '${END_DATE}' ORDER BY id) TO '${BILL_CSV}' WITH (FORMAT csv, HEADER true)"
+
+          echo "Exportando bill_item vinculados..."
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 -c "\copy (SELECT bi.* FROM bill_item bi JOIN bill b ON b.id = bi.bill_id WHERE b.company_id = ${COMPANY_ID} AND b.due_date >= '${START_DATE}' AND b.due_date < '${END_DATE}' ORDER BY b.id) TO '${BILL_ITEM_CSV}' WITH (FORMAT csv, HEADER true)"
+
+          gzip -9 "${BILL_CSV}" "${BILL_ITEM_CSV}"
+
+          echo "Enviando para o bucket..."
+          oci os object put -bn "${BUCKET_NAME}" --name "${ARCHIVE_DIR}/bill.csv.gz"       --file "${BILL_CSV}.gz"       --force
+          oci os object put -bn "${BUCKET_NAME}" --name "${ARCHIVE_DIR}/bill_item.csv.gz" --file "${BILL_ITEM_CSV}.gz" --force
+
+          echo "Removendo registros do banco (bill_item depois bill)..."
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 \
+            -v company_id="${COMPANY_ID}" -v start_date="${START_DATE}" -v end_date="${END_DATE}" -c "
+          BEGIN;
+            DELETE FROM bill_item bi USING bill b
+             WHERE b.id = bi.bill_id
+               AND b.company_id = :'company_id'
+               AND b.due_date >= :'start_date'
+               AND b.due_date <  :'end_date';
+            DELETE FROM bill
+             WHERE company_id = :'company_id'
+               AND due_date >= :'start_date'
+               AND due_date <  :'end_date';
+          COMMIT;"
+
+      - name: Restaurar dados (bucket -> COPY FROM)
+        if: github.event.inputs.acao == 'restaurar'
+        run: |
+          set -e
+          COMPANY_ID="${{ github.event.inputs.company_id }}"
+          YEAR="${{ github.event.inputs.year }}"
+          ARCHIVE_DIR="archive/${BUCKET_PREFIX}/company_id_${COMPANY_ID}/${YEAR}"
+
+          BILL_CSV="${ARCHIVE_DIR}/bill.csv"
+          BILL_ITEM_CSV="${ARCHIVE_DIR}/bill_item.csv"
+
+          mkdir -p "${ARCHIVE_DIR}"
+
+          echo "Baixando do bucket..."
+          oci os object get -bn "${BUCKET_NAME}" --name "${ARCHIVE_DIR}/bill.csv.gz"       --file "${BILL_CSV}.gz"       --force
+          oci os object get -bn "${BUCKET_NAME}" --name "${ARCHIVE_DIR}/bill_item.csv.gz" --file "${BILL_ITEM_CSV}.gz" --force
+
+          gunzip -f "${BILL_CSV}.gz" "${BILL_ITEM_CSV}.gz"
+
+          echo "Restaurando bill e bill_item..."
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 \
+            -c "\copy bill FROM '${BILL_CSV}' WITH (FORMAT csv, HEADER true)"
+          PGPASSWORD="$PGPASSWORD" psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 \
+            -c "\copy bill_item FROM '${BILL_ITEM_CSV}' WITH (FORMAT csv, HEADER true)"

@@ -71,8 +71,10 @@ resource "oci_psql_db_system" "postgresql_db_system" {
   depends_on = [oci_core_subnet.vpn_subnet]
 }
 
-# DBSystem COLD
+# DBSystem COLD (opcional; controlado por create_cold_db_system)
 resource "oci_psql_db_system" "postgresql_db_system_cold" {
+  count = var.create_cold_db_system ? 1 : 0
+
   display_name   = coalesce(var.cold_db_system_display_name, "pg-cold-archive")
   description    = coalesce(var.cold_db_system_description, "COLD - ${coalesce(var.db_system_description, var.db_system_display_name)}")
   compartment_id = local.compartment_id
