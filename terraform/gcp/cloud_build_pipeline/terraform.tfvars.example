@@ -1,0 +1,12 @@
+# Copy to terraform.tfvars and fill in your values.
+# Whizlabs Lab: Automating Deployment using CI/CD Pipeline with Google Cloud Build
+
+project_id   = "your-gcp-project-id"
+region       = "us-central1"
+
+# Lab validation expects these exact values:
+repository_name = "cleverson"
+trigger_name    = "Whizlabs"
+
+branch_regex = ".*"
+app_engine_location_id = "us-central"

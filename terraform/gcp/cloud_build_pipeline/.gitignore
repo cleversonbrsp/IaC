@@ -1,0 +1,14 @@
+.terraform.lock.hcl
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+account.json
+.terraform.tfstate.lock.info
+terraform/gcp/cloud_build_pipeline/credential/account.json
