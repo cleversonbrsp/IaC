@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# OCI Object Storage bucket (ex.: archive de billing - pipeline archive/restore)
+# OCI Object Storage bucket (apprest-archive - pipeline archive/restore)
 # -----------------------------------------------------------------------------
 
 resource "oci_objectstorage_bucket" "billing_archive" {

@@ -162,8 +162,12 @@ protocol="udp"
 echo "Using port: $port (from Terraform openvpn_port)"
 echo "Using default protocol: $protocol"
 
-# DNS (same as prod)
-dns_server="10.10.1.190"
+# DNS
+# OBS: em ambientes onde o client usa systemd-resolved, o DNS "push" do OpenVPN pode
+# virar o DNS padrão do host (tun0 fica como DefaultRoute de DNS). Se esse DNS interno
+# não resolver a internet, o usuário “perde internet” ao conectar no VPN.
+# Por isso, o default aqui é DNS público.
+dns_server="1.1.1.1 8.8.8.8"
 echo "Using default DNS: $dns_server"
 case "$dns" in
     1)
@@ -184,7 +188,7 @@ case "$dns" in
     6)
         dns_server="94.140.14.14 94.140.15.15";;
     *)
-        dns_server="10.10.1.190";;
+        dns_server="1.1.1.1 8.8.8.8";;
 esac
 
 # Push route for DB subnet (templatefile: db_subnet_cidr)

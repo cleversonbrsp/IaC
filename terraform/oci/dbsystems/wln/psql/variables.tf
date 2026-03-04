@@ -262,8 +262,8 @@ variable "ssh_allowed_cidr" {
 # --- Object Storage (billing archive) ---
 variable "bucket_name" {
   type        = string
-  description = "Nome do bucket Object Storage (billing archive)"
-  default     = ""
+  description = "Nome do bucket Object Storage (ex.: apprest-archive)"
+  default     = "apprest-archive"
 }
 variable "bucket_namespace" {
   type        = string

@@ -144,7 +144,7 @@ Todas as entradas são controladas por variáveis; os valores práticos ficam em
 
 | Variável | Uso |
 |----------|-----|
-| `bucket_name` | Nome do bucket (ex.: `navita-billing-archive`) |
+| `bucket_name` | Nome do bucket (ex.: `apprest-archive`) |
 | `bucket_namespace` | Namespace do Object Storage do tenancy (ex.: saída de `oci os namespace get`) |
 
 ---
@@ -233,7 +233,7 @@ Parâmetros do workflow:
 - `company_id`, `year`: recorte dos dados.
 - `acao`: arquivar ou restaurar.
 
-O nome do bucket usado no workflow deve ser o mesmo configurado aqui (ex.: `navita-billing-archive`). Configure os secrets de conexão PostgreSQL e OCI no repositório conforme o README/comentários do workflow.
+O nome do bucket usado no workflow deve ser o mesmo configurado aqui (ex.: `apprest-archive`). Configure os secrets de conexão PostgreSQL e OCI no repositório conforme o README/comentários do workflow.
 
 ---
 
