@@ -1,0 +1,54 @@
+# Copie para terraform.tfvars e ajuste. terraform.tfvars costuma estar no .gitignore.
+
+# --- OCI / Identity ---
+oci_region         = "us-ashburn-1"
+oci_home_region    = "sa-saopaulo-1"
+oci_config_profile = "DEFAULT"
+
+# Mesmo campo `tenancy` do ~/.oci/config (ocid1.tenancy.oc1..…)
+tenancy_ocid = ""
+
+# Compartment pai: o Terraform cria o filho com compartment_name.
+parent_compartment_id = "ocid1.compartment.oc1..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+compartment_name              = "desktop-instances"
+compartment_description       = "Desktop Ubuntu + OpenVPN — NAT/IGW"
+compartment_propagation_delay = "45s"
+
+# Tags — defined_tags exige namespace definido na tenancy (ex.: MyTag.Environment)
+common_tags = {
+  defined_tags = {}
+}
+
+# --- Rede ---
+vcn_cidr            = "10.60.0.0/16"
+private_subnet_cidr = "10.60.10.0/24"
+
+vpn_subnet_cidr     = "10.60.20.0/24"
+openvpn_client_cidr = "10.8.0.0/24"
+
+openvpn_port = 1194
+
+# vpn_ssh_ingress_cidr     = "0.0.0.0/0"
+# openvpn_udp_ingress_cidr = "0.0.0.0/0"
+# extra_admin_cidrs        = []
+
+# vpn_instance_display_name = "openvpn"
+# vpn_instance_shape        = "VM.Standard.E5.Flex"
+# vpn_instance_ocpus        = 1
+# vpn_instance_memory_gbs     = 6
+# vpn_image_id              = ""
+
+# --- Compute ---
+availability_domain_name = "YCyV:US-ASHBURN-AD-1"
+
+instance_shape      = "VM.Standard.E5.Flex"
+instance_ocpus      = 4
+instance_memory_gbs = 64
+
+instance_image_id = "ocid1.image.oc1.iad.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+ssh_public_key_path  = "/home/example/.ssh/instance-oci.pub"
+ssh_private_key_path = "~/.ssh/instance-oci.key"
+
+cloud_init_user = "ubuntu"
