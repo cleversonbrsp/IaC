@@ -31,7 +31,7 @@ resource "oci_core_instance" "desktop" {
 
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
-    user_data           = base64encode(file("${path.module}/scripts/cloud-init-desktop.sh"))
+    user_data           = base64encode(local.desktop_cloud_init_userdata)
   }
 
   defined_tags = var.common_tags.defined_tags

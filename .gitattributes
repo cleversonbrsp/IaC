@@ -1,0 +1,2 @@
+# Scripts shell devem usar apenas LF (evita ^M e "set: pipefail" inválido no Linux)
+*.sh text eol=lf
