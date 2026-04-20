@@ -3,8 +3,9 @@ set -eo pipefail
 
 # ===============================
 # Primeiro boot (user_data) — Ubuntu → XFCE + XRDP
-# Emparelhado com MIME multipart em locals.tf (desktop_cloud_init_userdata) + compute_desktop.tf:
-#   #cloud-config package_update/upgrade: false → evita lock do apt com cloud-init.
+# Enviado como script único em compute_desktop.tf (base64). No início paramos unattended-upgrades
+# e esperamos o apt — evita lock sem depender de MIME multipart (na OCI o handler da parte shell
+# multipart pode falhar e o cloud-init “done” sem instalar nada).
 #
 # Objetivo: SO com XFCE acessível por RDP (3389/tcp) para quem estiver na VPN / pool OpenVPN
 # (regras de rede em network.tf — NSG + Security List).

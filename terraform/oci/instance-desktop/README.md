@@ -9,7 +9,7 @@ Material de referência e **estudo** do stack `instance-desktop`: uma VCN com **
 | O que este Terraform entrega? | Duas VMs: **VPN** (com IP público) e **desktop** (só IP privado), mais rede OCI completa. |
 | Como entro no desktop pela internet? | **Não entra direto**: conecta na **VPN** com o `.ovpn`, depois **SSH/RDP** no IP **privado** do desktop. |
 | Onde está cada coisa no código? | VPN → `compute_vpn.tf` + `scripts/openvpn-ubuntu-install.sh`; desktop → `compute_desktop.tf` + `scripts/cloud-init-desktop.sh`. |
-| Por que o primeiro boot do desktop é “delicado”? | **Lock do `apt`**; o projeto usa **`user_data` MIME** (`#cloud-config` + shell) para evitar conflito. |
+| Por que o primeiro boot do desktop é “delicado”? | **Lock do `apt`**; o script para **unattended-upgrades** e **espera** a fila antes do `apt-get` (sem MIME multipart — na OCI a parte shell do multipart pode **não rodar**). |
 
 **Vocabulário:** mantemos termos usuais em inglês no dia a dia DevOps (`apply`, `output`, `user_data`). O restante do texto está em **português brasileiro**.
 
@@ -154,11 +154,11 @@ flowchart TB
 | `versions.tf` | Versão mínima do Terraform e *providers*. |
 | `providers.tf` | Provider `oci` (workload) e `oci.home` (Identity na home region). |
 | `data.tf` | Oracle Services Network (para o Service Gateway). |
-| `locals.tf` | Compartment, AD, imagens, OSN e **`desktop_cloud_init_userdata`** (MIME multipart). |
+| `locals.tf` | Compartment, AD, imagens, OSN. |
 | `compartments.tf` | Compartment filho + espera após criação. |
 | `network.tf` | VCN, gateways, rotas, subnets, SL, NSG. |
 | `compute_vpn.tf` | Instância VPN; `user_data` = `templatefile(openvpn-ubuntu-install.sh)` (modelo wln/psql). |
-| `compute_desktop.tf` | Instância desktop; `user_data` = MIME multipart (ver seção 10). |
+| `compute_desktop.tf` | Instância desktop; `user_data` = `base64encode(cloud-init-desktop.sh)` (script único). |
 | `variables.tf` | Contrato de entrada do módulo. |
 | `outputs.tf` | IPs, comandos sugeridos, hints de SSH/RDP/VPN. |
 | `scripts/cloud-init-desktop.sh` | Único script de preparação do desktop: primeiro boot via `user_data` (XFCE, xrdp, UFW, `devuser`). |
@@ -401,29 +401,29 @@ O desktop usa **imagem Ubuntu Server** (sem GUI no ISO). No primeiro boot, **`cl
 
 **Quem pode conectar no RDP:** máquinas que apareçam para o NSG como origem na subnet da VPN ou no CIDR do pool OpenVPN — em geral, **notebook com VPN ligada** ao servidor OpenVPN.
 
-### 10.2 Por que MIME multipart?
+### 10.2 Por que `user_data` é um script único (e não MIME multipart)?
 
-Dois problemas comuns no primeiro boot:
+**Problema no primeiro boot:** o **cloud-init** padrão e o **unattended-upgrades** podem usar o **apt** ao mesmo tempo que o seu script — **disputa pelo lock** (`Could not get lock`).
 
-1. O **cloud-init** padrão pode rodar **atualização de pacotes** ao mesmo tempo que o seu script — **disputa pelo lock do apt** (`Could not get lock`).
-2. **unattended-upgrades** também usa o apt em paralelo.
+**Tentativa com MIME multipart** (`#cloud-config` com `package_update: false` + parte `text/x-shellscript`): em **imagens Oracle / cloud-init recente**, o handler **`ShellScriptPartHandler` pode falhar** para a parte shell. O sintoma é `cloud-init status: done` em **poucos segundos**, aviso no log tipo *Failed calling handler ShellScriptPartHandler*, e **nada** de XFCE/xrdp instalado — exatamente o que você quer evitar.
 
-**Solução implementada** (`locals.desktop_cloud_init_userdata` em `locals.tf` + `compute_desktop.tf`):
+**Solução adotada:** um **único** `cloud-init-desktop.sh` em `user_data` (base64). No **início** do script:
 
-1. Parte **`#cloud-config`** com `package_update: false` e `package_upgrade: false` — o cloud-init **não** dispara `apt` em paralelo ao seu script.
-2. Parte **shell** com `cloud-init-desktop.sh`, que:
-   - para **unattended-upgrades** e timers **apt-daily**;
-   - espera locks se necessário;
-   - instala stack gráfica + **xrdp** + **xorgxrdp** + **dbus-user-session**, configura **xrdp-sesman**, **startwm.sh**, `.xsession` / `.Xclients` e polkit (**colord**);
-   - habilita **UFW**;
-   - **não** exige reboot ao final para o xrdp subir;
-   - cria **`/opt/.instance-desktop-rdp-ready`** e roda verificação de serviço/porta quando termina com sucesso.
+- paramos **unattended-upgrades** e os timers **apt-daily**;
+- **esperamos** a fila do apt liberar (com logs).
+
+Assim reduzimos o lock **sem** depender de multipart. O restante do script:
+
+- instala stack gráfica + **xrdp** + **xorgxrdp** + **dbus-user-session**, configura **xrdp-sesman**, **startwm.sh**, `.xsession` / `.Xclients` e polkit (**colord**);
+- habilita **UFW**;
+- **não** exige reboot obrigatório para o xrdp subir;
+- cria **`/opt/.instance-desktop-rdp-ready`** e roda verificação de serviço/porta quando termina com sucesso.
 
 **SSH:** usuário da imagem (ex.: **`ubuntu`**). **RDP:** **`devuser`** e senha no script (**altere** em ambientes reais).
 
 ### 10.3 Se o primeiro boot do desktop falhar
 
-O caminho suportado é **sempre o cloud-init** com o stack atual (`#cloud-config` + `cloud-init-desktop.sh` no `user_data`).
+O caminho suportado é **sempre o cloud-init** com o **`cloud-init-desktop.sh` atual** no `user_data` (script único em base64).
 
 1. **Preferencial:** ajuste o Terraform se precisar, depois **recrie** a instância desktop para reaplicar o `user_data` (ex.: `terraform apply -replace=oci_core_instance.desktop` — confira o nome do recurso no seu state).
 2. **Alternativa avançada:** com SSH na VM, copie o conteúdo de **`scripts/cloud-init-desktop.sh`** do repositório, grave em um arquivo **com finais de linha Unix (LF)** e execute com `sudo bash` (é o mesmo script do primeiro boot). Se o arquivo passou pelo Windows e aparecer `^M` / `bad interpreter`, use: `sed -i 's/\r$//' ./cloud-init-desktop.sh` antes de rodar.
@@ -476,7 +476,8 @@ Valide: `systemctl is-active xrdp xrdp-sesman` e `ss -tlnp | grep 3389`; RDP com
 
 | Sintoma | O que verificar |
 |---------|------------------|
-| `cloud-init status: error` e sem pacotes xrdp | Garantir stack MIME + `cloud-init-desktop.sh` atual; **recriar** a instância desktop ou executar manualmente o mesmo script (§10.3). |
+| `cloud-init status: done` rápido mas **sem** xrdp / log com `ShellScriptPartHandler` | Provável **multipart** antigo que não executou a parte shell — use **`user_data` só com** `cloud-init-desktop.sh` (commit atual) e **recrie** a VM; ou rode o script manualmente (§10.3). |
+| `cloud-init status: error` e sem pacotes xrdp | **Recriar** a instância desktop com `cloud-init-desktop.sh` atual ou executar o mesmo script na mão (§10.3). |
 | Porta 3389 fechada | `systemctl status xrdp`; `ss -tlnp \| grep 3389`; UFW; NSG (mesmos CIDRs que SSH se o cliente é o mesmo). |
 | Cliente Windows bloqueia RDP | Algumas redes bloqueiam **saída** TCP 3389 mas não 22 — testar `Test-NetConnection -Port 3389` do PC. |
 
@@ -507,7 +508,7 @@ Tente responder **sem** olhar as seções anteriores. Depois confira o gabarito 
 1. Por que o desktop usa **NAT Gateway** em vez de IP público?
 2. Qual a diferença entre tráfego para **internet** e tráfego para **Oracle Services Network** nesta VCN?
 3. O que é **`openvpn_client_cidr`** e o que acontece se ele não bater com o pool do servidor OpenVPN?
-4. Por que o `user_data` do desktop é **multipart** e o que o trecho `#cloud-config` desliga?
+4. Como o projeto **reduz o lock do apt** no primeiro boot do desktop **sem** usar MIME multipart?
 5. Por que SSH e RDP podem usar **usuários diferentes** (`ubuntu` vs `devuser`)?
 6. Por que você **não** deve tentar RDP no desktop **logo após** o `terraform apply` terminar no seu terminal?
 
@@ -517,7 +518,7 @@ Tente responder **sem** olhar as seções anteriores. Depois confira o gabarito 
 1. **NAT:** o desktop fica na subnet **privada** (sem IP público na VNIC). Para acessar a internet com origem nesse IP privado, o tráfego de saída passa pelo **NAT Gateway** (SNAT). Assim você não expõe o desktop diretamente na internet.
 2. **Internet vs OSN:** tráfego para **0.0.0.0/0** (internet) sai pela rota para o **NAT Gateway**. Tráfego para prefixos da **Oracle Services Network** (repos, APIs geridas pela Oracle na região) usa o **Service Gateway**, sem sair pela internet pública — melhor custo e caminho privado aos serviços Oracle.
 3. **`openvpn_client_cidr`:** CIDR dos IPs que os **clientes OpenVPN** recebem ao conectar (no script padrão, pool **10.8.0.0/24**). As regras do **desktop** liberam SSH/RDP a partir desse intervalo. Se o Terraform apontar para um CIDR **diferente** do pool real no servidor OpenVPN, o firewall na nuvem pode **bloquear** SSH/RDP mesmo com VPN ligada.
-4. **Multipart + `#cloud-config`:** o cloud-init padrão pode rodar **atualização de pacotes** em paralelo ao seu script e causar **lock do apt**. O trecho `#cloud-config` com `package_update: false` e `package_upgrade: false` **desliga** essas etapas automáticas; o script shell instala o desktop **depois**, sem disputa (e ainda paramos serviços como unattended-upgrades no script).
+4. **Lock do apt:** no início de `cloud-init-desktop.sh` paramos **unattended-upgrades** e timers **apt-daily** e **esperamos** até o apt ficar livre, antes do primeiro `apt-get update`. Não usamos multipart na OCI porque a parte shell pode falhar no handler e o primeiro boot “terminar” sem instalar nada.
 5. **Dois usuários:** a imagem Ubuntu na OCI já vem com usuário **`ubuntu`** (chave SSH no `metadata`). O **cloud-init** cria **`devuser`** para sessão gráfica via **xrdp** (senha definida no script). São **papéis diferentes**: administração SSH típica vs. login no ambiente XFCE pelo RDP.
 6. **Apply ≠ SO pronto:** o Terraform só **cria** a VM; o **primeiro boot** ainda roda `apt`, instala XFCE/xrdp etc. Isso leva **muitos minutos**. Se você tentar RDP antes do **cloud-init** concluir (`status: done`), o serviço pode nem estar instalado ou escutando na porta 3389.
 
