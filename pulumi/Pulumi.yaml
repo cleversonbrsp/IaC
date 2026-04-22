@@ -1,0 +1,7 @@
+name: iac-oci-learning
+description: Minimal OCI Identity user example (Python)
+runtime:
+  name: python
+  options:
+    virtualenv: .venv
+main: test.oci.py

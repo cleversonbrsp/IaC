@@ -40,6 +40,10 @@ This folder contains small Pulumi projects used to learn [Pulumi](https://www.pu
 - [Tutorials](https://www.pulumi.com/docs/get-started/)
 - [Registry (providers + API docs)](https://www.pulumi.com/registry/)
 
+### Oracle Cloud (OCI)
+
+Pulumi supports Oracle Cloud through the **`oci`** provider in the Registry (not always linked from the generic getting-started guides). See [Oracle Cloud Infrastructure | Pulumi Registry](https://www.pulumi.com/registry/packages/oci) and the upstream repo [pulumi/pulumi-oci](https://github.com/pulumi/pulumi-oci). Oracle also publishes guidance for running Pulumi in OCI, for example [Install and configure Pulumi on OCI](https://docs.oracle.com/en/learn/oci-pulumi-iac/index.html).
+
 ## Safety note
 
 Never commit cloud secrets or private keys. Prefer environment variables, OIDC in CI, or Pulumi secrets (`pulumi config set --secret`).

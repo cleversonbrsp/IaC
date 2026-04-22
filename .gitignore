@@ -23,3 +23,14 @@ override.tf.json
 *.json
 *.secret
 *.bkp
+
+# Pulumi — stack configs (environment-specific / may contain secrets)
+Pulumi.*.yaml
+!Pulumi.*.yaml.example
+.pulumi/
+
+# Pulumi Python / local tooling
+.venv/
+venv/
+__pycache__/
+*.py[cod]

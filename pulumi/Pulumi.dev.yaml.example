@@ -1,0 +1,37 @@
+# Example stack configuration for Pulumi.
+#
+# Usage:
+#   1) pulumi stack init dev   # creates Pulumi.dev.yaml (if missing)
+#   2) Copy values below into Pulumi.dev.yaml, or run the matching
+#      `pulumi config set ...` commands from the comments.
+#
+# Do not commit real secrets or private keys in plaintext. Use
+#   pulumi config set oci:privateKey --secret
+# and similar for sensitive OCIDs if your policy requires it.
+
+config:
+  # --- OCI provider (https://www.pulumi.com/registry/packages/oci/installation-configuration/)
+  oci:region: us-ashburn-1
+
+  # Prefer environment variables for auth (not stored in this file):
+  #   export TF_VAR_tenancy_ocid="ocid1.tenancy.oc1..xxxx"
+  #   export TF_VAR_user_ocid="ocid1.user.oc1..xxxx"
+  #   export TF_VAR_fingerprint="aa:bb:..."
+  #   export TF_VAR_private_key_path="/home/you/.oci/oci_api_key.pem"
+  #
+  # Or set in stack config (often with --secret):
+  #   pulumi config set oci:tenancyOcid "ocid1.tenancy.oc1..xxxx" --secret
+  #   pulumi config set oci:userOcid "ocid1.user.oc1..xxxx" --secret
+  #   pulumi config set oci:fingerprint "aa:bb:..." --secret
+  #   pulumi config set oci:privateKeyPath "/home/you/.oci/oci_api_key.pem"
+
+  # --- App values (namespace iac:, read by test.oci.py via pulumi.Config("iac"))
+  iac:compartmentId: "ocid1.compartment.oc1..REPLACE_ME"
+  iac:userName: "pulumi_example_user"
+  iac:userEmail: "pulumi-example@example.com"
+  iac:userDescription: "Example user from Pulumi; safe to destroy"
+
+  # JSON strings for get_object("...") in Python
+  iac:freeformTags: '{"Department":"Labs"}'
+  # Uncomment only if the tag namespace/key exists in your tenancy:
+  # iac:definedTags: '{"Operations.CostCenter":"42"}'
