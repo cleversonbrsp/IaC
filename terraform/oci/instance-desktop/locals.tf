@@ -6,5 +6,5 @@ locals {
   oracle_services_network = one(data.oci_core_services.all_oci_services.services)
 
   resolved_image_id   = var.instance_image_id
-  vpn_source_image_id = var.vpn_image_id != "" ? var.vpn_image_id : var.instance_image_id
+  vpn_source_image_id = var.vpn_image_id
 }

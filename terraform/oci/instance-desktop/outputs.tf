@@ -54,13 +54,24 @@ output "desktop_private_ip" {
 }
 
 output "ssh_cmd" {
-  description = "SSH no desktop pelo IP privado (após VPN ativa)."
+  description = "SSH no desktop pelo IP privado (após VPN ativa). Ajuste cloud_init_user se a imagem custom usar outro login."
   value       = "ssh -i ${var.ssh_private_key_path} ${var.cloud_init_user}@${data.oci_core_vnic.desktop_vnic.private_ip_address}"
 }
 
 output "rdp_hint" {
-  description = "RDP para o IP privado do desktop, porta 3389 (após VPN)."
+  description = "Alvo RDP host:porta (conecte na VPN antes). Porta 3389 já liberada na NSG a partir da subnet VPN e do pool OpenVPN."
   value       = "${data.oci_core_vnic.desktop_vnic.private_ip_address}:3389"
+}
+
+output "desktop_rdp" {
+  description = "Resumo para acesso RDP ao desktop (sempre via VPN; sem IP público na VNIC do desktop)."
+  value = {
+    connect_vpn_public_ip = data.oci_core_vnic.vpn_vnic.public_ip_address
+    rdp_host              = data.oci_core_vnic.desktop_vnic.private_ip_address
+    rdp_port              = 3389
+    rdp_user_note         = "Credenciais RDP conforme a imagem custom (não criadas pelo Terraform)."
+    ssh_for_admin         = "ssh -i ${var.ssh_private_key_path} ${var.cloud_init_user}@${data.oci_core_vnic.desktop_vnic.private_ip_address}"
+  }
 }
 
 output "vpn_access_note" {

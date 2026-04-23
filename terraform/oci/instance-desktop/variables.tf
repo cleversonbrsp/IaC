@@ -161,9 +161,12 @@ variable "vpn_instance_memory_gbs" {
 }
 
 variable "vpn_image_id" {
-  description = "OCID da imagem da VPN (vazio = usa instance_image_id)."
+  description = "OCID da imagem de boot **somente** da VM OpenVPN (ex.: Ubuntu Server na mesma região que oci_region). Não use a custom image do desktop — o script openvpn-ubuntu-install.sh espera Server."
   type        = string
-  default     = ""
+  validation {
+    condition     = length(var.vpn_image_id) > 0 && can(regex("^ocid1\\.image\\.", var.vpn_image_id))
+    error_message = "vpn_image_id é obrigatório e deve ser um OCID de imagem (ocid1.image...), separado de instance_image_id (desktop)."
+  }
 }
 
 variable "vpn_instance_hostname_label" {
@@ -223,7 +226,7 @@ variable "instance_memory_gbs" {
 }
 
 variable "instance_image_id" {
-  description = "OCID da imagem (Ubuntu/Jammy ou conforme região)."
+  description = "OCID da imagem de boot **somente** do desktop (ex.: custom image). A VPN usa sempre vpn_image_id."
   type        = string
   validation {
     condition     = length(var.instance_image_id) > 0 && can(regex("^ocid1\\.image\\.", var.instance_image_id))
@@ -243,7 +246,7 @@ variable "ssh_private_key_path" {
 }
 
 variable "cloud_init_user" {
-  description = "Usuário Linux padrão da imagem (Ubuntu na OCI costuma ser ubuntu)."
+  description = "Usuário Linux para SSH nos outputs (deve existir na imagem custom; Ubuntu costuma ser ubuntu)."
   type        = string
   default     = "ubuntu"
 }

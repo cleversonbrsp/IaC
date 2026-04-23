@@ -29,11 +29,9 @@ resource "oci_core_instance" "desktop" {
     boot_volume_size_in_gbs = var.boot_volume_size_in_gbs
   }
 
+  # Imagem custom (RDP/desktop já na imagem): apenas chave SSH no metadata.
   metadata = {
     ssh_authorized_keys = file(var.ssh_public_key_path)
-    # Script único (não usar MIME multipart aqui: em imagens OCI o ShellScriptPartHandler pode falhar
-    # e o primeiro boot termina sem instalar XFCE/xrdp — ver README §10.2).
-    user_data           = base64encode(file("${path.module}/scripts/cloud-init-desktop.sh"))
   }
 
   defined_tags = var.common_tags.defined_tags

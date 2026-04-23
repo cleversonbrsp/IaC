@@ -1,7 +1,7 @@
 resource "oci_core_instance" "vpn" {
   availability_domain = local.selected_ad_name
   compartment_id      = local.compartment_id
-  display_name          = var.vpn_instance_display_name
+  display_name        = var.vpn_instance_display_name
 
   shape = var.vpn_instance_shape
   dynamic "shape_config" {
@@ -49,7 +49,7 @@ resource "oci_core_instance" "vpn" {
 
     precondition {
       condition     = local.vpn_source_image_id != ""
-      error_message = "Defina instance_image_id ou vpn_image_id (OCID) no terraform.tfvars."
+      error_message = "Defina vpn_image_id (OCID da imagem Ubuntu Server da VPN) no terraform.tfvars."
     }
 
     precondition {

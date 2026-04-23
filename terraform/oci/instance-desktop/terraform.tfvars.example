@@ -37,7 +37,6 @@ openvpn_port = 1194
 # vpn_instance_shape        = "VM.Standard.E5.Flex"
 # vpn_instance_ocpus        = 1
 # vpn_instance_memory_gbs     = 6
-# vpn_image_id              = ""
 
 # --- Compute ---
 availability_domain_name = "YCyV:US-ASHBURN-AD-1"
@@ -46,7 +45,11 @@ instance_shape      = "VM.Standard.E5.Flex"
 instance_ocpus      = 4
 instance_memory_gbs = 64
 
+# Desktop: custom image ou outra (só compute_desktop.tf).
 instance_image_id = "ocid1.image.oc1.iad.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+# VPN: Ubuntu **Server** na mesma região que oci_region (obrigatório; não reutilize a custom image do desktop).
+vpn_image_id = "ocid1.image.oc1.iad.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
 ssh_public_key_path  = "/home/example/.ssh/instance-oci.pub"
 ssh_private_key_path = "~/.ssh/instance-oci.key"

@@ -8,8 +8,8 @@ Material de referência e **estudo** do stack `instance-desktop`: uma VCN com **
 |----------|------------------------|
 | O que este Terraform entrega? | Duas VMs: **VPN** (com IP público) e **desktop** (só IP privado), mais rede OCI completa. |
 | Como entro no desktop pela internet? | **Não entra direto**: conecta na **VPN** com o `.ovpn`, depois **SSH/RDP** no IP **privado** do desktop. |
-| Onde está cada coisa no código? | VPN → `compute_vpn.tf` + `scripts/openvpn-ubuntu-install.sh`; desktop → `compute_desktop.tf` + `scripts/cloud-init-desktop.sh`. |
-| Por que o primeiro boot do desktop é “delicado”? | **Lock do `apt`**; o script para **unattended-upgrades** e **espera** a fila antes do `apt-get` (sem MIME multipart — na OCI a parte shell do multipart pode **não rodar**). |
+| Onde está cada coisa no código? | VPN → `compute_vpn.tf` + `scripts/openvpn-ubuntu-install.sh`; desktop → `compute_desktop.tf` (imagem custom; só `ssh_authorized_keys` no `metadata`). |
+| O que o Terraform faz no desktop? | **Cria a VM** com a imagem em `instance_image_id`; **RDP/GUI** vêm da imagem — não há script de bootstrap no repositório. |
 
 **Vocabulário:** mantemos termos usuais em inglês no dia a dia DevOps (`apply`, `output`, `user_data`). O restante do texto está em **português brasileiro**.
 
@@ -23,7 +23,7 @@ Material de referência e **estudo** do stack `instance-desktop`: uma VCN com **
 | Subir o ambiente do zero | [Pré-requisitos](#5-pré-requisitos) → [Configuração](#6-configuração-terraformtfvars) → [Comandos Terraform](#7-comandos-terraform) → [Tempo de espera e checklist pós-apply](#71-tempo-de-espera-e-checklist-pós-apply) |
 | Conectar na VPN e no desktop depois do `apply` | [Fluxo pós-deploy: VPN → desktop](#8-fluxo-pós-deploy-vpn--desktop) |
 | Entender só OpenVPN (scripts, `.ovpn`, `/opt`) | [OpenVPN em profundidade](#9-openvpn-em-profundidade) |
-| Entender só o desktop (XFCE, xrdp, cloud-init) | [Desktop: cloud-init e RDP](#10-desktop-cloud-init-e-rdp) |
+| Entender só o desktop (imagem custom, RDP) | [Desktop: imagem custom e RDP](#10-desktop-imagem-custom-e-rdp) |
 | Depurar problemas | [Resolução de problemas](#11-resolução-de-problemas) |
 
 **Sugestão de leitura na primeira vez:** seções 1 → 3 → 5 → 6 → 7 (**incluindo §7.1** sobre espera pós-apply) → 8 (cerca de 25–35 minutos de leitura). As demais servem de apoio quando for implementar ou revisar.
@@ -41,7 +41,7 @@ Material de referência e **estudo** do stack `instance-desktop`: uma VCN com **
 7. [Comandos Terraform](#7-comandos-terraform) — inclui [checklist após o `apply`](#71-tempo-de-espera-e-checklist-pós-apply)
 8. [Fluxo pós-deploy: VPN → desktop](#8-fluxo-pós-deploy-vpn--desktop)
 9. [OpenVPN em profundidade](#9-openvpn-em-profundidade)
-10. [Desktop: cloud-init e RDP](#10-desktop-cloud-init-e-rdp)
+10. [Desktop: imagem custom e RDP](#10-desktop-imagem-custom-e-rdp)
 11. [Resolução de problemas](#11-resolução-de-problemas)
 12. [Consistência e limitações](#12-consistência-e-limitações)
 13. [Segurança](#13-segurança)
@@ -59,9 +59,9 @@ Ao final deste documento você deve ser capaz de:
 - Explicar **por que** o desktop não tem IP público e ainda assim acessa internet e VPN.
 - Descrever o papel do **NAT Gateway**, **Service Gateway**, **Internet Gateway** e **NSG/Security List**.
 - Orquestrar o fluxo: **cliente OpenVPN → IP privado do desktop (SSH/RDP)**.
-- Localizar no repositório onde estão **VPN** (`compute_vpn.tf` + script) e **desktop** (`compute_desktop.tf` + cloud-init).
+- Localizar no repositório onde estão **VPN** (`compute_vpn.tf` + script) e **desktop** (`compute_desktop.tf`, imagem custom).
 - Saber onde olhar quando **VPN não conecta** ou **RDP não responde**.
-- Estimar **quanto esperar** após o `terraform apply` antes de validar as VMs e interpretar **`cloud-init status`**.
+- Estimar **quanto esperar** após o `terraform apply` (VPN ainda roda **cloud-init**; desktop depende da imagem).
 
 ### 1.2 Glossário rápido
 
@@ -158,10 +158,9 @@ flowchart TB
 | `compartments.tf` | Compartment filho + espera após criação. |
 | `network.tf` | VCN, gateways, rotas, subnets, SL, NSG. |
 | `compute_vpn.tf` | Instância VPN; `user_data` = `templatefile(openvpn-ubuntu-install.sh)` (modelo wln/psql). |
-| `compute_desktop.tf` | Instância desktop; `user_data` = `base64encode(cloud-init-desktop.sh)` (script único). |
+| `compute_desktop.tf` | Instância desktop; `metadata` com `ssh_authorized_keys` (sem `user_data` no módulo). |
 | `variables.tf` | Contrato de entrada do módulo. |
 | `outputs.tf` | IPs, comandos sugeridos, hints de SSH/RDP/VPN. |
-| `scripts/cloud-init-desktop.sh` | Único script de preparação do desktop: primeiro boot via `user_data` (XFCE, xrdp, UFW, `devuser`). |
 | `scripts/openvpn-ubuntu-install.sh` | Instala OpenVPN e grava `/opt/openvpn-ubuntu-install.sh` (menu). |
 | `terraform.tfvars.example` | Modelo para copiar em `terraform.tfvars`. |
 
@@ -185,7 +184,8 @@ flowchart TB
 2. Preencha no mínimo:
    - `oci_home_region`, `parent_compartment_id`
    - `availability_domain_name`
-   - `instance_image_id` (e opcionalmente `vpn_image_id` se for diferente; vazio = mesma imagem do desktop)
+   - `instance_image_id` (imagem do **desktop**, ex.: custom image)
+   - `vpn_image_id` (imagem **só** da VM OpenVPN — Ubuntu Server na mesma região; nunca a mesma custom image do desktop)
    - `ssh_public_key_path` (e `ssh_private_key_path` para outputs de SSH)
 3. Ajuste CIDRs para **não se sobreporem** na VCN:
    - `vcn_cidr` (ex.: /16)
@@ -215,18 +215,18 @@ terraform output -raw vpn_public_ip
 
 ### 7.1 Tempo de espera e checklist pós-apply
 
-Depois que o **`terraform apply`** termina, as VMs **continuam** trabalhando no primeiro boot: **cloud-init** roda os scripts (`user_data`), instala pacotes e sobe serviços. **Não é instantâneo.**
+Depois que o **`terraform apply`** termina, a **VM OpenVPN** ainda costuma estar no primeiro boot: **cloud-init** aplica o `user_data` (script OpenVPN). **Não é instantâneo.** O **desktop** neste módulo **não** recebe `user_data` do Terraform — o tempo até SSH/RDP útil depende do boot da **imagem custom** (em geral bem menor que uma instalação completa via `apt`).
 
 #### Quanto esperar (ordem de grandeza)
 
 | VM | Tempo típico | O que demora |
 |----|----------------|--------------|
 | **OpenVPN** | **~5 a 15 minutos** | `apt`, Easy-RSA, OpenVPN, primeiro `.ovpn` |
-| **Desktop** | **~15 a 45 minutos** (às vezes até **~60 min** em shape pequeno ou mirror lento) | `apt upgrade`, XFCE, xrdp, muitos pacotes |
+| **Desktop** | **~2 a 10 minutos** (ordem de grandeza) | Boot do SO + serviços já presentes na imagem (ex.: xrdp) |
 
-**Regra prática:** espere **pelo menos 10 a 15 minutos** após o apply e só então tente **SSH no IP público da VPN**. Para o **desktop**, conte com **20 a 30 minutos** antes de assumir falha — ou acompanhe o log até ele parar de crescer.
+**Regra prática:** espere **pelo menos 10 a 15 minutos** após o apply e só então tente **SSH no IP público da VPN**. Para o **desktop**, após a VPN estar OK, teste **SSH/RDP**; se falhar, veja **§11.2** e serviços na própria VM.
 
-**Sinal mais confiável:** na VM, `sudo cloud-init status` deve mostrar **`status: done`**. Enquanto estiver **`running`**, o primeiro boot ainda não terminou.
+**Sinal mais confiável (VPN):** na VM VPN, `sudo cloud-init status` deve mostrar **`status: done`** antes de contar com o `.ovpn` inicial.
 
 #### O que checar (ordem sugerida para estudo / operação)
 
@@ -255,26 +255,23 @@ sudo test -f /etc/openvpn/client-configs/files/openvpn-config.ovpn && echo "perf
 **3) VM do desktop (só IP privado — use SSH a partir da VPN já ligada, ou de outra VM na VCN)**
 
 ```bash
-ssh -i ~/.ssh/SUA_CHAVE ubuntu@IP_PRIVADO_DESKTOP
-sudo cloud-init status
-sudo tail -80 /var/log/cloud-init-output.log
+ssh -i ~/.ssh/SUA_CHAVE SEU_USUARIO@IP_PRIVADO_DESKTOP
 ```
 
-Validação do RDP / XFCE:
+(`SEU_USUARIO` = `cloud_init_user` no `terraform.tfvars`, alinhado ao usuário que existe na **imagem custom**.)
+
+Validação do RDP (se a imagem tiver xrdp):
 
 ```bash
 systemctl is-active xrdp xrdp-sesman
 sudo ss -tlnp | grep 3389
-test -f /opt/.instance-desktop-rdp-ready && echo "marcador desktop OK"
 ```
 
-**4) No seu notebook (com VPN OpenVPN conectada)** — teste **RDP** para `IP_PRIVADO_DESKTOP:3389`, usuário **`devuser`**, senha conforme `cloud-init-desktop.sh`.
+**4) No seu notebook (com VPN OpenVPN conectada)** — teste **RDP** para `IP_PRIVADO_DESKTOP:3389` com o **usuário e senha definidos na sua imagem custom** (não são criados pelo Terraform).
 
-#### Se ainda estiver “em execução”
+#### Se o RDP não responder logo após o `apply`
 
-Se `cloud-init status` ainda for **`running`** ou o arquivo de log **continuar mudando**, **aguarde mais 10 a 15 minutos** e verifique de novo. Só parta para **§11 (resolução de problemas)** se passar de **~60 minutos** no desktop com erro persistente ou `status: error`.
-
-**Estudo:** o gargalo costuma ser **download/instalação de pacotes**, não o Terraform em si — por isso o tempo varia com rede e tamanho da imagem.
+Confirme que a VM **terminou de bootar** e que **xrdp** está ativo na imagem; use **§11.2** e o output `desktop_rdp`.
 
 ---
 
@@ -290,6 +287,7 @@ Se `cloud-init status` ainda for **`running`** ou o arquivo de log **continuar m
 | `desktop_private_ip` | IP **privado** do desktop. |
 | `ssh_cmd` | SSH ao desktop **depois** da VPN (usuário `cloud_init_user`, ex.: `ubuntu`). |
 | `rdp_hint` | `IP_PRIVADO:3389` para o cliente RDP **depois** da VPN. |
+| `desktop_rdp` | Objeto com IP da VPN, IP do desktop, porta 3389 e lembrete de credenciais na imagem. |
 | `vpn_access_note` | Lembrete sobre CIDRs e regras. |
 
 ### 8.2 Passo a passo (ordem didática)
@@ -299,7 +297,7 @@ Se `cloud-init status` ainda for **`running`** ou o arquivo de log **continuar m
 3. Com o túnel ativo, o cliente recebe IP do pool (ex.: 10.8.x.x) e passa a alcançar o **`vcn_cidr`** (split tunnel).
 4. **SSH** ou **RDP** ao **IP privado** do desktop (`desktop_private_ip` / `rdp_hint`). Não existe rota direta da internet pública para o desktop.
 
-**Usuários:** SSH na imagem costuma ser **`ubuntu`**; sessão **RDP (xrdp)** usa **`devuser`** com a senha definida em `cloud-init-desktop.sh` (**altere a senha** em ambientes reais).
+**Usuários:** ajuste **`cloud_init_user`** para o login SSH que existe na **imagem custom**. **RDP** usa usuário/senha que você definiu ao preparar a imagem (fora do Terraform).
 
 ---
 
@@ -380,84 +378,30 @@ O cloud-init do `user_data` roda em geral **só no primeiro boot**. Mudar o `.tf
 
 ---
 
-## 10. Desktop: cloud-init e RDP
+## 10. Desktop: imagem custom e RDP
 
-### 10.1 Ideia central (estudo)
+### 10.1 Ideia central
 
-O desktop usa **imagem Ubuntu Server** (sem GUI no ISO). No primeiro boot, **`cloud-init`** executa `scripts/cloud-init-desktop.sh`, que instala **XFCE**, **LightDM** e **xrdp**, cria o usuário **`devuser`** e configura **UFW** (22 e 3389).
+O desktop é provisionado com **`instance_image_id`** (imagem **custom** na OCI, por exemplo após import de disco). O Terraform injeta apenas **`ssh_authorized_keys`** no `metadata` da instância — **não** há script de primeiro boot nem `user_data` no módulo para instalar GUI/xrdp.
 
-### 10.1a Double-check — o que fica pronto para RDP + XFCE (VPN)
+### 10.2 O que você precisa na imagem
 
-| Camada | O que o script faz |
-|--------|---------------------|
-| **Pacotes** | XFCE (`xfce4`, `xfce4-session`, goodies), LightDM, **xrdp**, **xorgxrdp**, Xorg, **dbus-user-session** (sessão gráfica via RDP), utilitários de rede/desktop. |
-| **Sessão RDP** | `/etc/xrdp/startwm.sh` inicia **XFCE** com `exec startxfce4` (limpa variáveis dbus comuns em sessão remota); `devuser` recebe **`.xsession`** (`xfce4-session`) e **`.Xclients`** (`startxfce4`). |
-| **Serviços systemd** | `xrdp` e **xrdp-sesman** habilitados e reiniciados (ambos são necessários para login RDP). |
-| **Polkit** | Regras para **colord** (evita bloqueios / tela cinza em sessão X remota em Ubuntu 20.04+). |
-| **TLS / grupo** | Usuário de sistema `xrdp` no grupo **ssl-cert** quando o grupo existe. |
-| **Firewall na VM** | UFW liberando **22/tcp** e **3389/tcp**. |
-| **Rede OCI** | NSG + Security List do desktop já liberam **3389** a partir de `vpn_subnet_cidr` e `openvpn_client_cidr` (tráfego originado na VPN ou no pool OpenVPN). |
-| **Conclusão** | Arquivo **`/opt/.instance-desktop-rdp-ready`** e logs de verificação (`xrdp` ativo, porta **3389** em escuta). |
+- **xrdp** (e sessão gráfica) já configurados, ou outro stack de acesso remoto que escute na **3389/tcp** se quiser usar o mesmo fluxo RDP.
+- Usuário(s) e senhas de **RDP** definidos por você ao preparar a imagem.
+- Usuário para **SSH** alinhado com **`cloud_init_user`** no `terraform.tfvars`.
 
-**Quem pode conectar no RDP:** máquinas que apareçam para o NSG como origem na subnet da VPN ou no CIDR do pool OpenVPN — em geral, **notebook com VPN ligada** ao servidor OpenVPN.
+### 10.3 Rede (OCI)
 
-### 10.2 Por que `user_data` é um script único (e não MIME multipart)?
+A NSG + Security List do desktop liberam **3389** e **22** a partir de **`vpn_subnet_cidr`** e **`openvpn_client_cidr`**. O cliente precisa estar com **VPN ligada** para alcançar o IP **privado** do desktop.
 
-**Problema no primeiro boot:** o **cloud-init** padrão e o **unattended-upgrades** podem usar o **apt** ao mesmo tempo que o seu script — **disputa pelo lock** (`Could not get lock`).
-
-**Tentativa com MIME multipart** (`#cloud-config` com `package_update: false` + parte `text/x-shellscript`): em **imagens Oracle / cloud-init recente**, o handler **`ShellScriptPartHandler` pode falhar** para a parte shell. O sintoma é `cloud-init status: done` em **poucos segundos**, aviso no log tipo *Failed calling handler ShellScriptPartHandler*, e **nada** de XFCE/xrdp instalado — exatamente o que você quer evitar.
-
-**Solução adotada:** um **único** `cloud-init-desktop.sh` em `user_data` (base64). No **início** do script:
-
-- paramos **unattended-upgrades** e os timers **apt-daily**;
-- **esperamos** a fila do apt liberar (com logs).
-
-Assim reduzimos o lock **sem** depender de multipart. O restante do script:
-
-- instala stack gráfica + **xrdp** + **xorgxrdp** + **dbus-user-session**, configura **xrdp-sesman**, **startwm.sh**, `.xsession` / `.Xclients` e polkit (**colord**);
-- habilita **UFW**;
-- **não** exige reboot obrigatório para o xrdp subir;
-- cria **`/opt/.instance-desktop-rdp-ready`** e roda verificação de serviço/porta quando termina com sucesso.
-
-**SSH:** usuário da imagem (ex.: **`ubuntu`**). **RDP:** **`devuser`** e senha no script (**altere** em ambientes reais).
-
-### 10.3 Se o primeiro boot do desktop falhar
-
-O caminho suportado é **sempre o cloud-init** com o **`cloud-init-desktop.sh` atual** no `user_data` (script único em base64).
-
-1. **Preferencial:** ajuste o Terraform se precisar, depois **recrie** a instância desktop para reaplicar o `user_data` (ex.: `terraform apply -replace=oci_core_instance.desktop` — confira o nome do recurso no seu state).
-2. **Alternativa avançada:** com SSH na VM, copie o conteúdo de **`scripts/cloud-init-desktop.sh`** do repositório, grave em um arquivo **com finais de linha Unix (LF)** e execute com `sudo bash` (é o mesmo script do primeiro boot). Se o arquivo passou pelo Windows e aparecer `^M` / `bad interpreter`, use: `sed -i 's/\r$//' ./cloud-init-desktop.sh` antes de rodar.
-
-Não há script separado de “recover” no repositório — a manutenção concentra-se em **`cloud-init-desktop.sh`**.
-
-#### Anexo: trechos em shell (referência; a fonte é `cloud-init-desktop.sh`)
-
-O procedimento completo (polkit, verificação final, etc.) está só em **`scripts/cloud-init-desktop.sh`**. Abaixo, um **subconjunto** para estudo ou teste manual — use como `root`/`sudo` só se souber o efeito de cada comando:
+### 10.4 Verificação rápida (SSH na VM)
 
 ```bash
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
-apt-get install -y xorg dbus-x11 dbus-user-session xfce4 xfce4-goodies xfce4-session lightdm xrdp xorgxrdp xserver-xorg-core xserver-xorg-legacy
-adduser --disabled-password --gecos "" devuser 2>/dev/null || true
-echo 'devuser:Pass123' | chpasswd
-usermod -aG sudo devuser
-cat > /etc/xrdp/startwm.sh << 'EOF'
-#!/bin/sh
-. /etc/profile 2>/dev/null
-unset DBUS_SESSION_BUS_ADDRESS
-unset XDG_RUNTIME_DIR
-exec startxfce4
-EOF
-chmod +x /etc/xrdp/startwm.sh
-echo xfce4-session > /home/devuser/.xsession && chmod +x /home/devuser/.xsession && chown devuser:devuser /home/devuser/.xsession
-echo startxfce4 > /home/devuser/.Xclients && chmod +x /home/devuser/.Xclients && chown devuser:devuser /home/devuser/.Xclients
-getent group ssl-cert >/dev/null && usermod -a -G ssl-cert xrdp 2>/dev/null || true
-systemctl enable --now xrdp xrdp-sesman
-ufw allow 22/tcp && ufw allow 3389/tcp && ufw --force enable
+systemctl is-active xrdp xrdp-sesman 2>/dev/null || true
+sudo ss -tlnp | grep 3389 || true
 ```
 
-Valide: `systemctl is-active xrdp xrdp-sesman` e `ss -tlnp | grep 3389`; RDP com usuário **devuser**.
+Se o serviço não existir, o problema está na **imagem** ou no SO, não no Terraform.
 
 ---
 
@@ -468,7 +412,7 @@ Valide: `systemctl is-active xrdp xrdp-sesman` e `ss -tlnp | grep 3389`; RDP com
 | Sintoma | O que verificar |
 |---------|------------------|
 | VPN não conecta | NSG/SL da subnet VPN: UDP na `openvpn_port`; `ufw` no servidor; serviço `openvpn-server@server` ou `openvpn@server`. |
-| VPN conecta mas não alcança o desktop | Rota no cliente para `vcn_cidr`; `openvpn_client_cidr` e regras do desktop; cloud-init do desktop concluído. |
+| VPN conecta mas não alcança o desktop | Rota no cliente para `vcn_cidr`; `openvpn_client_cidr` e regras NSG/SL do desktop; serviços na VM (xrdp/SSH). |
 | Não aparece `.ovpn` | Aguardar cloud-init; `/var/log/cloud-init-output.log` na VM VPN. |
 | Novo cliente inválido | Menu em `/opt`, opção 1; conferir `.ovpn` completo e porta em `server.conf`. |
 
@@ -476,8 +420,8 @@ Valide: `systemctl is-active xrdp xrdp-sesman` e `ss -tlnp | grep 3389`; RDP com
 
 | Sintoma | O que verificar |
 |---------|------------------|
-| `cloud-init status: done` rápido mas **sem** xrdp / log com `ShellScriptPartHandler` | Provável **multipart** antigo que não executou a parte shell — use **`user_data` só com** `cloud-init-desktop.sh` (commit atual) e **recrie** a VM; ou rode o script manualmente (§10.3). |
-| `cloud-init status: error` e sem pacotes xrdp | **Recriar** a instância desktop com `cloud-init-desktop.sh` atual ou executar o mesmo script na mão (§10.3). |
+| RDP recusa conexão | VPN ligada; IP privado correto; `systemctl status xrdp xrdp-sesman`; firewall **na VM** (UFW/iptables) e **NSG** (CIDRs VPN / pool OpenVPN). |
+| SSH funciona mas RDP não | Imagem sem xrdp ou serviço parado; usuário RDP diferente do SSH — conferir documentação da sua imagem custom. |
 | Porta 3389 fechada | `systemctl status xrdp`; `ss -tlnp \| grep 3389`; UFW; NSG (mesmos CIDRs que SSH se o cliente é o mesmo). |
 | Cliente Windows bloqueia RDP | Algumas redes bloqueiam **saída** TCP 3389 mas não 22 — testar `Test-NetConnection -Port 3389` do PC. |
 
@@ -494,8 +438,7 @@ Valide: `systemctl is-active xrdp xrdp-sesman` e `ss -tlnp | grep 3389`; RDP com
 
 ## 13. Segurança
 
-- Restrinja `vpn_ssh_ingress_cidr` e `openvpn_udp_ingress_cidr` (evite `0.0.0.0/0` em produção se possível).
-- Altere senhas e usuários em `cloud-init-desktop.sh` antes de ambientes reais.
+- Restrinja `vpn_ssh_ingress_cidr` e `openvpn_udp_ingress_cidr` (evite `0.0.0.0/0` em produção se possível); use credenciais fortes na **imagem custom**.
 - Use `extra_admin_cidrs` com parcimônia no NSG do desktop.
 - Alinhe **defined_tags** à política da tenancy.
 
@@ -508,9 +451,9 @@ Tente responder **sem** olhar as seções anteriores. Depois confira o gabarito 
 1. Por que o desktop usa **NAT Gateway** em vez de IP público?
 2. Qual a diferença entre tráfego para **internet** e tráfego para **Oracle Services Network** nesta VCN?
 3. O que é **`openvpn_client_cidr`** e o que acontece se ele não bater com o pool do servidor OpenVPN?
-4. Como o projeto **reduz o lock do apt** no primeiro boot do desktop **sem** usar MIME multipart?
-5. Por que SSH e RDP podem usar **usuários diferentes** (`ubuntu` vs `devuser`)?
-6. Por que você **não** deve tentar RDP no desktop **logo após** o `terraform apply` terminar no seu terminal?
+4. O que o Terraform **não** faz no desktop neste módulo (além de criar a VM e a chave SSH)?
+5. Por que SSH e RDP podem usar **usuários diferentes** na prática?
+6. Por que você precisa da **VPN** ligada antes de testar RDP no IP do desktop?
 
 <details>
 <summary><strong>Gabarito sugestivo</strong> (clique para expandir)</summary>
@@ -518,9 +461,9 @@ Tente responder **sem** olhar as seções anteriores. Depois confira o gabarito 
 1. **NAT:** o desktop fica na subnet **privada** (sem IP público na VNIC). Para acessar a internet com origem nesse IP privado, o tráfego de saída passa pelo **NAT Gateway** (SNAT). Assim você não expõe o desktop diretamente na internet.
 2. **Internet vs OSN:** tráfego para **0.0.0.0/0** (internet) sai pela rota para o **NAT Gateway**. Tráfego para prefixos da **Oracle Services Network** (repos, APIs geridas pela Oracle na região) usa o **Service Gateway**, sem sair pela internet pública — melhor custo e caminho privado aos serviços Oracle.
 3. **`openvpn_client_cidr`:** CIDR dos IPs que os **clientes OpenVPN** recebem ao conectar (no script padrão, pool **10.8.0.0/24**). As regras do **desktop** liberam SSH/RDP a partir desse intervalo. Se o Terraform apontar para um CIDR **diferente** do pool real no servidor OpenVPN, o firewall na nuvem pode **bloquear** SSH/RDP mesmo com VPN ligada.
-4. **Lock do apt:** no início de `cloud-init-desktop.sh` paramos **unattended-upgrades** e timers **apt-daily** e **esperamos** até o apt ficar livre, antes do primeiro `apt-get update`. Não usamos multipart na OCI porque a parte shell pode falhar no handler e o primeiro boot “terminar” sem instalar nada.
-5. **Dois usuários:** a imagem Ubuntu na OCI já vem com usuário **`ubuntu`** (chave SSH no `metadata`). O **cloud-init** cria **`devuser`** para sessão gráfica via **xrdp** (senha definida no script). São **papéis diferentes**: administração SSH típica vs. login no ambiente XFCE pelo RDP.
-6. **Apply ≠ SO pronto:** o Terraform só **cria** a VM; o **primeiro boot** ainda roda `apt`, instala XFCE/xrdp etc. Isso leva **muitos minutos**. Se você tentar RDP antes do **cloud-init** concluir (`status: done`), o serviço pode nem estar instalado ou escutando na porta 3389.
+4. **Sem bootstrap no módulo:** não envia `user_data` para instalar pacotes; **GUI/xrdp** e usuários vêm só da **imagem custom**.
+5. **Dois usuários:** o SSH nos outputs usa **`cloud_init_user`** (ex.: `ubuntu`); o login **RDP** segue o que você definiu na imagem — podem ser contas distintas.
+6. **Sem rota pública para o desktop:** a VNIC do desktop não tem IP público; o tráfego RDP precisa vir da **VCN** (ex.: notebook com **VPN** e rota para `vcn_cidr`).
 
 </details>
 
